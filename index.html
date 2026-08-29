@@ -3,130 +3,125 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vokabel-Abenteuer">
 <title>Vokabel-Abenteuer</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#f5f7fb;color:#172033}
-  h1{margin:4px 0 6px}.sub{color:#64748b;margin-top:0}
-  .card{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 4px 18px #0000000d}
-  button,input{font:inherit}
-  button{border:0;border-radius:12px;padding:11px 15px;cursor:pointer;background:#e8eefc;color:#173b8f;margin:4px}
-  button.primary{background:#315ee8;color:white}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}
-  .word{font-size:34px;font-weight:800;text-align:center;margin:12px}.pron{text-align:center;color:#64748b;font-size:18px}
-  input{width:100%;box-sizing:border-box;border:2px solid #cbd5e1;border-radius:12px;padding:13px;margin:12px 0 8px}
-  input:focus{outline:none;border-color:#315ee8}
-  .row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.stats{display:flex;gap:10px;flex-wrap:wrap}
-  .pill{background:#eef2ff;padding:8px 12px;border-radius:999px}.small{font-size:13px;color:#64748b}
-  .hidden{display:none}.answer{font-size:24px;text-align:center;margin:12px}
-  label{font-weight:700}.feedback{text-align:center;font-weight:800;font-size:20px;margin:12px 0}
-  .okmsg{color:#166534}.nomsg{color:#991b1b}
-  .nextBtn{font-size:17px;background:#315ee8;color:white;padding:13px 22px;margin-top:8px}
-  .big{font-size:17px}.hero{text-align:center;font-size:58px}
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:960px;margin:0 auto;padding:18px;background:#f5f7fb;color:#172033}
+h1{margin:4px 0 6px}.sub{color:#64748b;margin-top:0}
+.card{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 4px 18px #0000000d}
+button,input{font:inherit}button{border:0;border-radius:12px;padding:11px 15px;cursor:pointer;background:#e8eefc;color:#173b8f;margin:4px}
+button.primary{background:#315ee8;color:white}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}
+.word{font-size:34px;font-weight:800;text-align:center;margin:12px}.pron{text-align:center;color:#64748b;font-size:18px}
+input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:6px 0 10px}
+.row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.stats{display:flex;gap:10px;flex-wrap:wrap}
+.pill{background:#eef2ff;padding:8px 12px;border-radius:999px}.small{font-size:13px;color:#64748b}
+.hidden{display:none}.answer{font-size:24px;text-align:center;margin:12px}
+label{font-weight:700}.big{font-size:17px}.home{text-align:center}
+.feedback{text-align:center;font-size:23px;font-weight:800;margin:14px 0 6px}
+.feedback.goodText{color:#166534}.feedback.badText{color:#991b1b}
+.progress{height:12px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:10px 0}
+.progress>div{height:100%;width:0;transition:.3s}
 </style>
 </head>
 <body>
-
 <header>
-  <h1>📚 Vokabel-Abenteuer</h1>
-  <p class="sub">Dein persönlicher Englisch-Trainer</p>
+<h1>📚 Vokabel-Abenteuer</h1>
+<p class="sub">Dein persönlicher Englisch-Trainer</p>
 </header>
 
-<div id="home" class="card" style="text-align:center">
-  <div class="hero">🎮</div>
-  <h2>Bereit zum Lernen?</h2>
-  <p>Übe deine Vokabeln, sammle Punkte und schaffe eine lange 🔥 Streak!</p>
-  <button class="primary big" onclick="startQuiz()">▶️ Vokabeln lernen</button>
-  <button class="big" onclick="showManage()">➕ Vokabeln verwalten</button>
-  <div class="stats" style="justify-content:center;margin-top:10px">
-    <span class="pill">📖 <b id="count">0</b> Vokabeln</span>
-    <span class="pill">⭐ <b id="score">0</b> Punkte</span>
-    <span class="pill">🏆 Level <b id="level">1</b></span>
-  </div>
+<div id="home" class="card home">
+<div style="font-size:58px">🎮</div>
+<h2>Bereit zum Lernen?</h2>
+<p>Übe deine Vokabeln, sammle Punkte und schaffe eine lange 🔥 Streak!</p>
+<button class="primary big" onclick="startQuiz()">▶️ Vokabeln lernen</button>
+<button class="big" onclick="showManage()">➕ Vokabeln verwalten</button>
+<div class="stats">
+<span class="pill">📖 <b id="count">0</b> Vokabeln</span>
+<span class="pill">⭐ <b id="score">0</b> Punkte</span>
+<span class="pill">🏆 Level <b id="level">1</b></span>
+</div>
 </div>
 
 <div id="quizPage" class="hidden">
-  <div class="card">
-    <div class="row">
-      <button onclick="goHome()">🏠 Start</button>
-      <span class="pill">⭐ <b id="scoreQ">0</b></span>
-      <span class="pill">🔥 <b id="streakQ">0</b></span>
-      <span class="pill" id="heartsQ">❤️❤️❤️❤️❤️</span>
-    </div>
-  </div>
+<div class="card">
+<div class="row">
+<button onclick="goHome()">🏠 Start</button>
+<span class="pill">⭐ <b id="scoreQ">0</b></span>
+<span class="pill">🔥 <b id="streakQ">0</b></span>
+<span class="pill">📝 <b id="exerciseQ">0</b>/20</span>
+<span class="pill" id="heartsQ">❤️❤️❤️❤️❤️</span>
+</div>
+</div>
 
-  <div class="card" id="quiz">
-    <div class="small" id="mode">Deutsch → Englisch</div>
-    <div class="word" id="question">Lade…</div>
+<div class="card" id="quiz">
+<div class="small" id="mode">Deutsch → Englisch</div>
+<div class="word" id="question">Lade…</div>
+<div class="pron" id="pron"></div>
 
-    <div id="inputArea">
-      <input id="userAnswer" type="text" autocomplete="off"
-             placeholder="Deine Antwort hier eingeben …"
-             onkeydown="if(event.key==='Enter') checkAnswer()">
-      <div class="row">
-        <button class="primary" onclick="checkAnswer()">✅ Antwort prüfen</button>
-        <button onclick="speak()">🔊 Anhören</button>
-      </div>
-    </div>
+<div id="inputArea">
+<input id="userAnswer" type="text" placeholder="Deine Antwort hier eingeben …"
+autocomplete="off" autocapitalize="none"
+onkeydown="if(event.key==='Enter') checkAnswer()">
+<div class="row">
+<button class="primary" onclick="checkAnswer()">✅ Antwort prüfen</button>
+<button onclick="speak()">🔊 Anhören</button>
+</div>
+</div>
 
-    <div id="feedback" class="feedback"></div>
-    <div class="row"><button id="nextBtn" class="nextBtn hidden" onclick="newQuestion()">➡️ Nächste Frage</button></div>
+<div id="feedback" class="hidden"></div>
+<div id="resultBox" class="hidden">
+<div class="answer" id="answer"></div>
+<div class="pron" id="answerPron"></div>
+</div>
 
-    <div id="pauseBox" class="card hidden" style="margin-top:18px;text-align:center;background:#fff7ed">
-      <div style="font-size:42px">🧠⏸️</div>
-      <h2 style="margin:8px 0">Kurze Pause empfohlen!</h2>
-      <p style="font-size:17px">Du hast 20 Übungen geschafft. Eine kurze Pause kann helfen, das Gelernte besser zu behalten.</p>
-      <div class="row">
-        <button class="primary" onclick="continueLearning()">▶️ Weiterlernen</button>
-        <button onclick="takePause()">⏸️ Pause machen</button>
-      </div>
-    </div>
+<div class="row">
+<button id="nextBtn" class="primary hidden" onclick="nextQuestion()">➡️ Nächste Frage</button>
+</div>
 
-    <div id="answerBox" class="hidden">
-      <div class="answer" id="answer"></div>
-      <div class="pron" id="answerPron"></div>
-    </div>
-
-    <div class="row" style="margin-top:10px">
-      <button onclick="newQuestion()">🔄 Neue Frage</button>
-      <button onclick="toggleDirection()">↔️ Richtung wechseln</button>
-    </div>
-  </div>
+<div class="row" id="extraButtons">
+<button onclick="newQuestion()">🔄 Neue Frage</button>
+<button onclick="toggleDirection()">↔️ Richtung wechseln</button>
+</div>
+</div>
 </div>
 
 <div id="managePage" class="hidden">
-  <div class="card">
-    <button onclick="goHome()">🏠 Start</button>
-    <h2>➕ Vokabel hinzufügen</h2>
-    <label>Englisch</label>
-    <input id="en" placeholder="z. B. homework">
-    <label>Deutsch</label>
-    <input id="de" placeholder="z. B. Hausaufgaben">
-    <label>Aussprache</label>
-    <input id="pr" placeholder="z. B. hohm-wörk">
-    <button class="primary" onclick="addWord()">Vokabel speichern</button>
-  </div>
-
-  <div class="card">
-    <h2>📋 Meine Vokabeln</h2>
-    <div id="list"></div>
-    <button onclick="exportData()">💾 Vokabeln sichern</button>
-    <button onclick="importData()">📥 Sicherung laden</button>
-    <input id="file" type="file" accept=".json" class="hidden" onchange="loadFile(event)">
-    <button onclick="resetAll()">⚠️ Alles zurücksetzen</button>
-  </div>
+<div class="card">
+<button onclick="goHome()">🏠 Start</button>
+<h2>➕ Vokabel hinzufügen</h2>
+<label>Englisch</label>
+<input id="en" placeholder="z. B. homework">
+<label>Deutsch</label>
+<input id="de" placeholder="z. B. Hausaufgaben">
+<label>Aussprache</label>
+<input id="pr" placeholder="z. B. hohm-wörk">
+<button class="primary" onclick="addWord()">Vokabel speichern</button>
+</div>
+<div class="card">
+<h2>📋 Meine Vokabeln</h2>
+<div id="list"></div>
+<button onclick="exportData()">💾 Vokabeln sichern</button>
+<button onclick="importData()">📥 Sicherung laden</button>
+<input id="file" type="file" accept=".json" class="hidden" onchange="loadFile(event)">
+<button onclick="resetAll()">⚠️ Alles zurücksetzen</button>
+</div>
 </div>
 
 <script>
 const starter=[
 ["school","Schule","skuul"],["life","Leben","laif"],["lives","lebt","laivz"],
 ["to go","gehen; fahren","tu goʊ"],["to","in; zu; nach; bis","tu"],["in","in; auf","in"],
-["year","Jahr","jier"],["uniform","die Uniform","ju-ni-form"],
-["it's","er/sie/es ist","its"],["OK","okay","ou-kei"],["tutor","Klassenlehrer/Klassenlehrerin","tjuu-ter"],
+["year","Jahr","jier"],["uniform","die Uniform","ju-ni-form"],["it's","er/sie/es ist","its"],
+["OK","okay","ou-kei"],["tutor","Klassenlehrer/Klassenlehrerin","tjuu-ter"],
 ["Mr","Herr (Anrede)","mis-ter"],["he's","er ist","hiis"],["a","ein/eine","e"],
 ["science","Wissenschaft; Naturwissenschaft","sai-ens"],["teacher","Lehrer/Lehrerin","tii-tscher"],
 ["English","Englisch; englisch; aus England","ing-glisch"],["Mrs","Frau (Anrede)","miss-is"],
 ["she's","sie ist","schiis"],["caretaker","Hausmeister/Hausmeisterin","kehr-tei-ker"],
 ["always","immer","ool-weiz"],["busy","beschäftigt; belebt; arbeitsreich","bi-si"],
-["friend","Freund/Freundin","frend"],["new","neu","njuu"],["class","Klasse; Unterricht; Kurs; Unterrichtsstunde","klaas"],
+["friend","Freund/Freundin","frend"],["new","neu","njuu"],
+["class","Klasse; Unterricht; Kurs; Unterrichtsstunde","klaas"],
 ["cool","cool; super; kühl","kuul"],["music","Musik","mjuu-sik"],
 ["at","in; an; um; bei; auf","ät"],["Good morning","Guten Morgen","gud mor-ning"]
 ];
@@ -134,278 +129,169 @@ const starter=[
 let savedWords=JSON.parse(localStorage.getItem("vocabTrainerWords")||"null");
 let words=savedWords || starter.map(x=>({en:x[0],de:x[1],pr:x[2],ok:0,no:0}));
 if(savedWords){
-  for(const x of starter){
-    if(!words.some(w=>w.en.toLowerCase()===x[0].toLowerCase()))
-      words.push({en:x[0],de:x[1],pr:x[2],ok:0,no:0});
-  }
-}
-
+for(const x of starter){
+if(!words.some(w=>w.en.toLowerCase()===x[0].toLowerCase()))
+words.push({en:x[0],de:x[1],pr:x[2],ok:0,no:0});
+}}
 let score=Number(localStorage.getItem("vocabTrainerScore")||0);
 let streak=Number(localStorage.getItem("vocabTrainerStreak")||0);
 let hearts=Number(localStorage.getItem("vocabTrainerHearts")||5);
 let exercises=Number(localStorage.getItem("vocabTrainerExercises")||0);
-let current=null, direction=0, locked=false;
+let current=null,revealed=false,direction=0,answered=false;
 
 function save(){
-  localStorage.setItem("vocabTrainerWords",JSON.stringify(words));
-  localStorage.setItem("vocabTrainerScore",score);
-  localStorage.setItem("vocabTrainerStreak",streak);
-  localStorage.setItem("vocabTrainerHearts",hearts);
-  localStorage.setItem("vocabTrainerExercises",exercises);
-  render();
+localStorage.setItem("vocabTrainerWords",JSON.stringify(words));
+localStorage.setItem("vocabTrainerScore",score);
+localStorage.setItem("vocabTrainerStreak",streak);
+localStorage.setItem("vocabTrainerHearts",hearts);
+localStorage.setItem("vocabTrainerExercises",exercises);
+render();
 }
-
 function updateTop(){
-  document.getElementById("count").textContent=words.length;
-  document.getElementById("score").textContent=score;
-  document.getElementById("level").textContent=Math.floor(score/100)+1;
+document.getElementById("count").textContent=words.length;
+document.getElementById("score").textContent=score;
+document.getElementById("level").textContent=Math.floor(score/100)+1;
 }
+function render(){
+updateTop();
+document.getElementById("scoreQ").textContent=score;
+document.getElementById("streakQ").textContent=streak;
+document.getElementById("exerciseQ").textContent=exercises%20;
+document.getElementById("heartsQ").textContent="❤️".repeat(hearts)+"🖤".repeat(5-hearts);
+const list=document.getElementById("list");
+list.innerHTML=words.map((w,i)=>`<div style="padding:8px 0;border-bottom:1px solid #eee">
+<b>${esc(w.en)}</b> — ${esc(w.de)} <span class="small">[${esc(w.pr||"")]}</span>
+<button onclick="removeWord(${i})">löschen</button></div>`).join("");
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 function startQuiz(){
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("managePage").classList.add("hidden");
-  document.getElementById("quizPage").classList.remove("hidden");
-  pick();
+document.getElementById("home").classList.add("hidden");
+document.getElementById("managePage").classList.add("hidden");
+document.getElementById("quizPage").classList.remove("hidden");
+pick();
 }
-
 function showManage(){
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("quizPage").classList.add("hidden");
-  document.getElementById("managePage").classList.remove("hidden");
-  render();
+document.getElementById("home").classList.add("hidden");
+document.getElementById("quizPage").classList.add("hidden");
+document.getElementById("managePage").classList.remove("hidden");
+render();
 }
-
 function goHome(){
-  document.getElementById("quizPage").classList.add("hidden");
-  document.getElementById("managePage").classList.add("hidden");
-  document.getElementById("home").classList.remove("hidden");
-  render();
-}
-
-function render(){
-  updateTop();
-  document.getElementById("scoreQ").textContent=score;
-  document.getElementById("streakQ").textContent=streak;
-  document.getElementById("heartsQ").textContent="❤️".repeat(hearts)+"🖤".repeat(5-hearts);
-
-  const list=document.getElementById("list");
-  list.innerHTML=words.map((w,i)=>`<div style="padding:8px 0;border-bottom:1px solid #eee">
-    <b>${esc(w.en)}</b> — ${esc(w.de)} <span class="small">[${esc(w.pr||"")}]</span>
-    <button onclick="removeWord(${i})">löschen</button>
-  </div>`).join("");
-}
-
-function esc(s){
-  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+document.getElementById("quizPage").classList.add("hidden");
+document.getElementById("managePage").classList.add("hidden");
+document.getElementById("home").classList.remove("hidden");
+render();
 }
 
 function pick(){
-  if(!words.length)return;
-
-  const pool=[...words].sort((a,b)=>(a.ok-a.no)-(b.ok-b.no));
-  current=pool[Math.floor(Math.random()*Math.min(pool.length,Math.max(5,Math.ceil(pool.length*.7))))];
-
-  locked=false;
-  document.getElementById("answerBox").classList.add("hidden");
-  document.getElementById("feedback").textContent="";
-  document.getElementById("feedback").className="feedback";
-  document.getElementById("nextBtn").classList.add("hidden");
-  document.getElementById("pauseBox").classList.add("hidden");
-  document.getElementById("userAnswer").value="";
-  document.getElementById("userAnswer").disabled=false;
-
-  document.getElementById("mode").textContent=direction?"Englisch → Deutsch":"Deutsch → Englisch";
-  document.getElementById("question").textContent=direction?current.en:current.de;
-
-  setTimeout(()=>document.getElementById("userAnswer").focus(),50);
+if(!words.length)return;
+const pool=[...words].sort((a,b)=>(a.ok-a.no)-(b.ok-b.no));
+current=pool[Math.floor(Math.random()*Math.min(pool.length,Math.max(5,Math.ceil(pool.length*.7))))];
+answered=false;
+document.getElementById("mode").textContent=direction?"Englisch → Deutsch":"Deutsch → Englisch";
+document.getElementById("question").textContent=direction?current.en:current.de;
+document.getElementById("pron").textContent="";
+document.getElementById("userAnswer").value="";
+document.getElementById("userAnswer").disabled=false;
+document.getElementById("inputArea").classList.remove("hidden");
+document.getElementById("feedback").className="hidden";
+document.getElementById("feedback").textContent="";
+document.getElementById("resultBox").classList.add("hidden");
+document.getElementById("nextBtn").classList.add("hidden");
+document.getElementById("extraButtons").classList.remove("hidden");
 }
-
-function newQuestion(){pick()}
-
-function normalize(s){
-  return String(s)
-    .toLowerCase()
-    .trim()
-    .replace(/[.,!?;:]+$/g,"")
-    .replace(/\s+/g," ");
-}
-
-function isCorrect(user, expected){
-  const u=normalize(user);
-  return expected.split(";").some(x=>normalize(x)===u);
-}
-
-function checkAnswer(){
-  if(!current || locked)return;
-
-  const input=document.getElementById("userAnswer");
-  const user=input.value.trim();
-
-  if(!user){
-    document.getElementById("feedback").textContent="✏️ Bitte zuerst eine Antwort eingeben.";
-    document.getElementById("feedback").className="feedback nomsg";
-    input.focus();
-    return;
-  }
-
-  locked=true;
-  input.disabled=true;
-
-  const expected=direction?current.de:current.en;
-  const correct=isCorrect(user,expected);
-
-  document.getElementById("answerBox").classList.remove("hidden");
-  document.getElementById("answer").textContent="Richtige Antwort: "+expected;
-  document.getElementById("answerPron").textContent="🔊 Aussprache: "+current.pr;
-
-  if(correct){
-    const bonus=Math.min(20,5+streak);
-    score+=bonus;
-    streak++;
-    current.ok++;
-
-    document.getElementById("feedback").textContent="🎉 Gut gemacht! Richtig! +"+bonus+" Punkte";
-    document.getElementById("feedback").className="feedback okmsg";
-
-    if(streak%5===0) setTimeout(()=>alert("🔥 Super! "+streak+" richtige Antworten hintereinander!"),100);
-  }else{
-    current.no++;
-    streak=0;
-    hearts--;
-
-    document.getElementById("feedback").textContent="❌ Leider falsch. Die richtige Antwort steht unten. Gut weiterüben!";
-    document.getElementById("feedback").className="feedback nomsg";
-
-    if(hearts<=0){
-      alert("💪 Keine Herzen mehr! Du bekommst 5 neue Herzen und kannst weitermachen.");
-      hearts=5;
-    }
-  }
-
-  exercises++;
-  save();
-  document.getElementById("nextBtn").classList.remove("hidden");
-
-  if(exercises >= 20){
-    document.getElementById("pauseBox").classList.remove("hidden");
-  }
-}
-
-function continueLearning(){
-  exercises=0;
-  save();
-  document.getElementById("pauseBox").classList.add("hidden");
-}
-
-function takePause(){
-  exercises=0;
-  save();
-  document.getElementById("pauseBox").innerHTML = `
-    <div style="font-size:42px">☕⏸️</div>
-    <h2 style="margin:8px 0">Pause 😊</h2>
-    <p style="font-size:17px">Nimm dir ruhig ein paar Minuten Zeit. Wenn du bereit bist, kannst du einfach weitermachen.</p>
-    <div class="row">
-      <button class="primary" onclick="continueLearning()">▶️ Weiterlernen</button>
-    </div>`;
-  document.getElementById("pauseBox").classList.remove("hidden");
-}
-
-function toggleDirection(){
-  direction=direction?0:1;
-  pick();
-}
-
-function speak(){
-  if(!current)return;
-  const text=current.en;
-  if("speechSynthesis" in window){
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang="en-US";
-    speechSynthesis.speak(u);
-  }else{
-    alert("Dein Browser unterstützt das Vorlesen leider nicht.");
-  }
-}
-
-function addWord(){
-  const en=document.getElementById("en").value.trim();
-  const de=document.getElementById("de").value.trim();
-  const pr=document.getElementById("pr").value.trim();
-
-  if(!en||!de){
-    alert("Bitte Englisch und Deutsch eintragen.");
-    return;
-  }
-
-  words.push({en,de,pr:pr||"noch eintragen",ok:0,no:0});
-  save();
-
-  document.getElementById("en").value="";
-  document.getElementById("de").value="";
-  document.getElementById("pr").value="";
-}
-
-function removeWord(i){
-  if(confirm("Diese Vokabel löschen?")){
-    words.splice(i,1);
-    save();
-    if(current && !words.length) current=null;
-    else if(document.getElementById("quizPage").classList.contains("hidden")===false) pick();
-  }
-}
-
-function exportData(){
-  const blob=new Blob([JSON.stringify({words,score,streak,hearts},null,2)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="meine-vokabeln.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function importData(){
-  document.getElementById("file").click();
-}
-
-function loadFile(e){
-  const f=e.target.files[0];
-  if(!f)return;
-
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const d=JSON.parse(r.result);
-      if(!Array.isArray(d.words))throw 0;
-
-      words=d.words;
-      score=Number(d.score||0);
-      streak=Number(d.streak||0);
-      hearts=Math.max(1,Math.min(5,Number(d.hearts||5)));
-
-      save();
-      pick();
-      alert("Sicherung geladen!");
-    }catch{
-      alert("Die Datei konnte nicht geladen werden.");
-    }
-  };
-  r.readAsText(f);
-}
-
-function resetAll(){
-  if(confirm("Wirklich alle gespeicherten Vokabeln löschen und mit den Startvokabeln beginnen?")){
-    words=starter.map(x=>({en:x[0],de:x[1],pr:x[2],ok:0,no:0}));
-    score=0;
-    streak=0;
-    hearts=5;
-    save();
-    pick();
-  }
-}
-
-render();
+function newQuestion(){pick();}
+function nextQuestion(){
+if(exercises>0 && exercises%20===0){
+if(confirm("🎉 20 Übungen geschafft! Eine kurze Pause wäre jetzt eine gute Idee. Möchtest du trotzdem weitermachen?")){
+pick();
+}else{
 goHome();
+}
+}else{
+pick();
+}
+}
+function normalise(s){
+return String(s).trim().toLowerCase().replace(/[.!?,;:]+$/g,"").replace(/\s+/g," ");
+}
+function checkAnswer(){
+if(!current||answered)return;
+const given=normalise(document.getElementById("userAnswer").value);
+const correct=normalise(direction?current.de:current.en);
+if(!given){
+alert("Bitte gib zuerst eine Antwort ein.");
+return;
+}
+answered=true;
+exercises++;
+document.getElementById("userAnswer").disabled=true;
+document.getElementById("resultBox").classList.remove("hidden");
+document.getElementById("answer").textContent="Richtige Antwort: "+(direction?current.de:current.en);
+document.getElementById("answerPron").textContent="🔊 Aussprache: "+current.pr;
+
+if(given===correct){
+const bonus=Math.min(20,5+streak);
+score+=bonus;streak++;current.ok++;
+document.getElementById("feedback").className="feedback goodText";
+document.getElementById("feedback").textContent="🎉 Gut gemacht! Richtig! +"+bonus+" Punkte";
+}else{
+current.no++;streak=0;hearts=Math.max(0,hearts-1);
+document.getElementById("feedback").className="feedback badText";
+document.getElementById("feedback").textContent="❌ Noch nicht richtig. Übe diese Vokabel weiter!";
+if(hearts===0){
+hearts=5;
+alert("💪 Keine Herzen mehr! Du bekommst 5 neue Herzen und kannst weitermachen.");
+}
+}
+document.getElementById("feedback").classList.remove("hidden");
+document.getElementById("nextBtn").classList.remove("hidden");
+document.getElementById("extraButtons").classList.add("hidden");
+save();
+}
+function toggleDirection(){direction=direction?0:1;pick();}
+function speak(){
+if(!current)return;
+const text=current.en;
+if("speechSynthesis" in window){
+speechSynthesis.cancel();
+speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}else alert("Dein Browser unterstützt das Vorlesen leider nicht.");
+}
+function addWord(){
+const en=document.getElementById("en").value.trim(),de=document.getElementById("de").value.trim(),pr=document.getElementById("pr").value.trim();
+if(!en||!de){alert("Bitte Englisch und Deutsch eintragen.");return}
+words.push({en,de,pr:pr||"noch eintragen",ok:0,no:0});save();
+document.getElementById("en").value="";
+document.getElementById("de").value="";
+document.getElementById("pr").value="";
+}
+function removeWord(i){if(confirm("Diese Vokabel löschen?")){words.splice(i,1);save();pick();}}
+function exportData(){
+const blob=new Blob([JSON.stringify({words,score,streak,hearts,exercises},null,2)],{type:"application/json"});
+const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="meine-vokabeln.json";a.click();
+setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importData(){document.getElementById("file").click();}
+function loadFile(e){
+const f=e.target.files[0];if(!f)return;
+const r=new FileReader();
+r.onload=()=>{
+try{
+const d=JSON.parse(r.result);if(!Array.isArray(d.words))throw 0;
+words=d.words;score=Number(d.score||0);streak=Number(d.streak||0);hearts=Number(d.hearts||5);exercises=Number(d.exercises||0);
+save();pick();alert("Sicherung geladen!");
+}catch{alert("Die Datei konnte nicht geladen werden.");}
+};
+r.readAsText(f);
+}
+function resetAll(){
+if(confirm("Wirklich alle gespeicherten Vokabeln löschen und mit den Startvokabeln beginnen?")){
+words=starter.map(x=>({en:x[0],de:x[1],pr:x[2],ok:0,no:0}));
+score=0;streak=0;hearts=5;exercises=0;save();pick();
+}}
+render();goHome();
 </script>
 </body>
 </html>
