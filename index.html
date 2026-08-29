@@ -3,99 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vokabel-Trainer</title>
+<title>Vokabel-Abenteuer</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#f5f7fb;color:#172033}
-  h1{margin:4px 0 6px} .sub{color:#64748b;margin-top:0}
-  .card{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 4px 18px #0000000d}
-  button,input,textarea{font:inherit} button{border:0;border-radius:12px;padding:11px 15px;cursor:pointer;background:#e8eefc;color:#173b8f;margin:4px}
-  button.primary{background:#315ee8;color:white}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}
-  .word{font-size:34px;font-weight:800;text-align:center;margin:12px}.pron{text-align:center;color:#64748b;font-size:18px}
-  input,textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:6px 0 10px}
-  .row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.stats{display:flex;gap:10px;flex-wrap:wrap}
-  .pill{background:#eef2ff;padding:8px 12px;border-radius:999px}.small{font-size:13px;color:#64748b}
-  .hidden{display:none}.answer{font-size:24px;text-align:center;margin:12px}
-  label{font-weight:700}
-
-.level{font-size:20px;font-weight:800}.hearts{font-size:22px;letter-spacing:3px}
-.progress{height:12px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:10px 0}.progress>div{height:100%;width:0;transition:.3s}
-.streak{font-weight:800}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#fff7ed;margin:3px;font-size:13px}
-
-.home{text-align<body>
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#f5f7fb;color:#172033}
+h1{margin:4px 0 6px}.sub{color:#64748b;margin-top:0}
+.card{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 4px 18px #0000000d}
+button,input{font:inherit}button{border:0;border-radius:12px;padding:11px 15px;cursor:pointer;background:#e8eefc;color:#173b8f;margin:4px}
+button.primary{background:#315ee8;color:white}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}
+.big{font-size:17px;padding:13px 18px}.word{font-size:34px;font-weight:800;text-align:center;margin:12px}.pron{text-align:center;color:#64748b;font-size:18px}
+input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:6px 0 10px}
+.row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.stats{display:flex;gap:10px;flex-wrap:wrap}
+.pill{background:#eef2ff;padding:8px 12px;border-radius:999px}.small{font-size:13px;color:#64748b}
+.hidden{display:none}.answer{font-size:24px;text-align:center;margin:12px}
+label{font-weight:700}.hero{font-size:60px}.home{text-align:center}
+</style>
+</head>
+<body>
 <header>
-  <h1>📚 Vokabel-Abenteuer</h1>
-  <p class="sub">Dein persönlicher Englisch-Trainer</p>
+<h1>📚 Vokabel-Abenteuer</h1>
+<p class="sub">Dein persönlicher Englisch-Trainer</p>
 </header>
 
 <div id="home" class="card home">
-  <div class="hero">🎮</div>
-  <h2>Bereit zum Lernen?</h2>
-  <p>Übe deine Vokabeln, sammle Punkte und schaffe eine lange 🔥 Streak!</p>
-  <button class="primary big" onclick="startQuiz()">▶️ Vokabeln lernen</button>
-  <button class="big" onclick="showManage()">➕ Vokabeln verwalten</button>
-  <div class="stats">
-    <span class="pill">📖 <b id="count">0</b> Vokabeln</span>
-    <span class="pill">⭐ <b id="score">0</b> Punkte</span>
-    <span class="pill">🏆 Level <b id="level">1</b></span>
-  </div>
+<div class="hero">🎮</div>
+<h2>Bereit zum Lernen?</h2>
+<p>Übe deine Vokabeln, sammle Punkte und schaffe eine lange 🔥 Streak!</p>
+<button class="primary big" onclick="startQuiz()">▶️ Vokabeln lernen</button>
+<button class="big" onclick="showManage()">➕ Vokabeln verwalten</button>
+<div class="stats">
+<span class="pill">📖 <b id="count">0</b> Vokabeln</span>
+<span class="pill">⭐ <b id="score">0</b> Punkte</span>
+<span class="pill">🏆 Level <b id="level">1</b></span>
+</div>
 </div>
 
 <div id="quizPage" class="hidden">
-  <div class="card">
-    <div class="row top">
-      <button onclick="goHome()">🏠 Start</button>
-      <span class="pill">⭐ <b id="scoreQ">0</b></span>
-      <span class="pill">🔥 <b id="streakQ">0</b></span>
-      <span class="pill" id="heartsQ">❤️❤️❤️❤️❤️</span>
-    </div>
-  </div>
-  <div class="card" id="quiz">
-    <div class="small" id="mode">Deutsch → Englisch</div>
-    <div class="word" id="question">Lade…</div>
-    <div class="pron" id="pron"></div>
-    <div class="row">
-      <button class="primary" onclick="showAnswer()">Antwort zeigen</button>
-      <button onclick="speak()">🔊 Anhören</button>
-    </div>
-    <div id="answerBox" class="hidden">
-      <div class="answer" id="answer"></div>
-      <div class="pron" id="answerPron"></div>
-      <div class="row">
-        <button class="good" onclick="grade(true)">✅ Gewusst</button>
-        <button class="bad" onclick="grade(false)">❌ Noch üben</button>
-      </div>
-    </div>
-    <div class="row">
-      <button onclick="newQuestion()">🔄 Neue Frage</button>
-      <button onclick="toggleDirection()">↔️ Richtung wechseln</button>
-    </div>
-  </div>
+<div class="card">
+<div class="row">
+<button onclick="goHome()">🏠 Start</button>
+<span class="pill">⭐ <b id="scoreQ">0</b></span>
+<span class="pill">🔥 <b id="streakQ">0</b></span>
+<span class="pill" id="heartsQ">❤️❤️❤️❤️❤️</span>
+</div>
+</div>
+<div class="card">
+<div class="small" id="mode">Deutsch → Englisch</div>
+<div class="word" id="question">Lade…</div>
+<div class="pron" id="pron"></div>
+<div class="row">
+<button class="primary" onclick="showAnswer()">Antwort zeigen</button>
+<button onclick="speak()">🔊 Anhören</button>
+</div>
+<div id="answerBox" class="hidden">
+<div class="answer" id="answer"></div>
+<div class="pron" id="answerPron"></div>
+<div class="row">
+<button class="good" onclick="grade(true)">✅ Gewusst</button>
+<button class="bad" onclick="grade(false)">❌ Noch üben</button>
+</div>
+</div>
+<div class="row">
+<button onclick="newQuestion()">🔄 Neue Frage</button>
+<button onclick="toggleDirection()">↔️ Richtung wechseln</button>
+</div>
+</div>
 </div>
 
 <div id="managePage" class="hidden">
-  <div class="card">
-    <button onclick="goHome()">🏠 Start</button>
-    <h2>➕ Vokabel hinzufügen</h2>
-    <label>Englisch</label>
-    <input id="en" placeholder="z. B. homework">
-    <label>Deutsch</label>
-    <input id="de" placeholder="z. B. Hausaufgaben">
-    <label>Aussprache</label>
-    <input id="pr" placeholder="z. B. hohm-wörk">
-    <button class="primary" onclick="addWord()">Vokabel speichern</button>
-  </div>
-  <div class="card">
-    <h2>📋 Meine Vokabeln</h2>
-    <div id="list"></div>
-    <button onclick="exportData()">💾 Vokabeln sichern</button>
-    <button onclick="importData()">📥 Sicherung laden</button>
-    <input id="file" type="file" accept=".json" class="hidden" onchange="loadFile(event)">
-    <button onclick="resetAll()">⚠️ Alles zurücksetzen</button>
-  </div>
+<div class="card">
+<button onclick="goHome()">🏠 Start</button>
+<h2>➕ Vokabel hinzufügen</h2>
+<label>Englisch</label>
+<input id="en" placeholder="z. B. homework">
+<label>Deutsch</label>
+<input id="de" placeholder="z. B. Hausaufgaben">
+<label>Aussprache</label>
+<input id="pr" placeholder="z. B. hohm-wörk">
+<button class="primary" onclick="addWord()">Vokabel speichern</button>
 </div>
-()">📥 Sicherung laden</button>
-  <input id="file" type="file" accept=".json" class="hidden" onchange="loadFile(event)">
-  <button onclick="resetAll()">⚠️ Alles zurücksetzen</button>
+<div class="card">
+<h2>📋 Meine Vokabeln</h2>
+<div id="list"></div>
+<button onclick="exportData()">💾 Vokabeln sichern</button>
+<button onclick="importData()">📥 Sicherung laden</button>
+<input id="file" type="file" accept=".json" class="hidden" onchange="loadFile(event)">
+<button onclick="resetAll()">⚠️ Alles zurücksetzen</button>
+</div>
 </div>
 
 <script>
@@ -113,107 +106,129 @@ const starter=[
 ["cool","cool; super; kühl","kuul"],["music","Musik","mjuu-sik"],
 ["at","in; an; um; bei; auf","ät"],["Good morning","Guten Morgen","gud mor-ning"]
 ];
+
 let savedWords=JSON.parse(localStorage.getItem("vocabTrainerWords")||"null");
 let words=savedWords || starter.map(x=>({en:x[0],de:x[1],pr:x[2],ok:0,no:0}));
 if(savedWords){
-  for(const x of starter){
-    if(!words.some(w=>w.en.toLowerCase()===x[0].toLowerCase()))
-      words.push({en:x[0],de:x[1],pr:x[2],ok:0,no:0});
-  }
-}
+for(const x of starter){
+if(!words.some(w=>w.en.toLowerCase()===x[0].toLowerCase()))
+words.push({en:x[0],de:x[1],pr:x[2],ok:0,no:0});
+}}
 let score=Number(localStorage.getItem("vocabTrainerScore")||0),
-    streak=Number(localStorage.getItem("vocabTrainerStreak")||0),
-    hearts=Number(localStorage.getItem("vocabTrainerHearts")||5),
-    current=null, revealed=false, direction=0;
+streak=Number(localStorage.getItem("vocabTrainerStreak")||0),
+hearts=Number(localStorage.getItem("vocabTrainerHearts")||5),
+current=null,direction=0;
 
 function save(){
- localStorage.setItem("vocabTrainerWords",JSON.stringify(words));
- localStorage.setItem("vocabTrainerScore",score);
- localStorage.setItem("vocabTrainerStreak",streak);
- localStorage.setItem("vocabTrainerHearts",hearts);
- render();
+localStorage.setItem("vocabTrainerWords",JSON.stringify(words));
+localStorage.setItem("vocabTrainerScore",score);
+localStorage.setItem("vocabTrainerStreak",streak);
+localStorage.setItem("vocabTrainerHearts",hearts);
+render();
 }
 function updateTop(){
- document.getElementById("count").textContent=words.length;
- document.getElementById("score").textContent=score;
- document.getElementById("level").textContent=Math.floor(score/100)+1;
+document.getElementById("count").textContent=words.length;
+document.getElementById("score").textContent=score;
+document.getElementById("level").textContent=Math.floor(score/100)+1;
 }
-function startQuiz(){document.getElementById("home").classList.add("hidden");document.getElementById("managePage").classList.add("hidden");document.getElementById("quizPage").classList.remove("hidden");pick();}
-function showManage(){document.getElementById("home").classList.add("hidden");document.getElementById("quizPage").classList.add("hidden");document.getElementById("managePage").classList.remove("hidden");render();}
-function goHome(){document.getElementById("quizPage").classList.add("hidden");document.getElementById("managePage").classList.add("hidden");document.getElementById("home").classList.remove("hidden");render();}
+function startQuiz(){
+document.getElementById("home").classList.add("hidden");
+document.getElementById("managePage").classList.add("hidden");
+document.getElementById("quizPage").classList.remove("hidden");pick();
+}
+function showManage(){
+document.getElementById("home").classList.add("hidden");
+document.getElementById("quizPage").classList.add("hidden");
+document.getElementById("managePage").classList.remove("hidden");render();
+}
+function goHome(){
+document.getElementById("quizPage").classList.add("hidden");
+document.getElementById("managePage").classList.add("hidden");
+document.getElementById("home").classList.remove("hidden");render();
+}
 function render(){
- updateTop();
- document.getElementById("scoreQ").textContent=score;
- document.getElementById("streakQ").textContent=streak;
- document.getElementById("heartsQ").textContent="❤️".repeat(hearts)+"🖤".repeat(5-hearts);
- const list=document.getElementById("list");
- list.innerHTML=words.map((w,i)=>`<div style="padding:8px 0;border-bottom:1px solid #eee">
- <b>${esc(w.en)}</b> — ${esc(w.de)} <span class="small">[${esc(w.pr)}]</span>
- <button onclick="removeWord(${i})">löschen</button></div>`).join("");
+updateTop();
+document.getElementById("scoreQ").textContent=score;
+document.getElementById("streakQ").textContent=streak;
+document.getElementById("heartsQ").textContent="❤️".repeat(hearts)+"🖤".repeat(5-hearts);
+const list=document.getElementById("list");
+list.innerHTML=words.map((w,i)=>`<div style="padding:8px 0;border-bottom:1px solid #eee">
+<b>${esc(w.en)}</b> — ${esc(w.de)} <span class="small">[${esc(w.pr)}</span>
+<button onclick="removeWord(${i})">löschen</button></div>`).join("");
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function pick(){
- if(!words.length)return;
- // Wörter mit weniger richtigen Antworten kommen etwas häufiger dran.
- const pool=[...words].sort((a,b)=>(a.ok-a.no)-(b.ok-b.no));
- current=pool[Math.floor(Math.random()*Math.min(pool.length,Math.max(5,Math.ceil(pool.length*.7))))];
- revealed=false; document.getElementById("answerBox").classList.add("hidden");
- document.getElementById("mode").textContent=direction?"Englisch → Deutsch":"Deutsch → Englisch";
- document.getElementById("question").textContent=direction?current.en:current.de;
- document.getElementById("pron").textContent=direction?"":"";
+if(!words.length)return;
+const pool=[...words].sort((a,b)=>(a.ok-a.no)-(b.ok-b.no));
+current=pool[Math.floor(Math.random()*Math.min(pool.length,Math.max(5,Math.ceil(pool.length*.7))))];
+document.getElementById("answerBox").classList.add("hidden");
+document.getElementById("mode").textContent=direction?"Englisch → Deutsch":"Deutsch → Englisch";
+document.getElementById("question").textContent=direction?current.en:current.de;
+document.getElementById("pron").textContent="";
 }
 function newQuestion(){pick()}
 function showAnswer(){
- revealed=true; document.getElementById("answerBox").classList.remove("hidden");
- document.getElementById("answer").textContent=direction?current.de:current.en;
- document.getElementById("answerPron").textContent="🔊 Aussprache: "+current.pr;
+document.getElementById("answerBox").classList.remove("hidden");
+document.getElementById("answer").textContent=direction?current.de:current.en;
+document.getElementById("answerPron").textContent="🔊 Aussprache: "+current.pr;
 }
 function grade(ok){
- if(!current)return;
- if(ok){
-   const bonus=Math.min(20,5+streak);
-   score+=bonus; streak++; current.ok++;
-   if(streak%5===0) alert("🔥 Super! "+streak+" richtige Antworten hintereinander!");
- }else{
-   current.no++; streak=0; hearts--;
-   if(hearts<=0){
-     alert("💪 Keine Herzen mehr! Du bekommst 5 neue Herzen und kannst weitermachen.");
-     hearts=5;
-   }
- }
- save(); setTimeout(pick,250);
+if(!current)return;
+if(ok){
+const bonus=Math.min(20,5+streak);
+score+=bonus;streak++;current.ok++;
+if(streak%5===0)alert("🔥 Super! "+streak+" richtige Antworten hintereinander!");
+}else{
+current.no++;streak=0;hearts--;
+if(hearts<=0){
+alert("💪 Keine Herzen mehr! Du bekommst 5 neue Herzen und kannst weitermachen.");
+hearts=5;
+}}
+save();setTimeout(pick,250);
 }
 function toggleDirection(){direction=direction?0:1;pick()}
 function speak(){
- if(!current)return;
- const text=current.en;
- if("speechSynthesis" in window){speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(text));}
- else alert("Dein Browser unterstützt das Vorlesen leider nicht.");
+if(!current)return;
+const text=current.en;
+if("speechSynthesis" in window){
+speechSynthesis.cancel();
+speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}else alert("Dein Browser unterstützt das Vorlesen leider nicht.");
 }
 function addWord(){
- const en=document.getElementById("en").value.trim(),de=document.getElementById("de").value.trim(),pr=document.getElementById("pr").value.trim();
- if(!en||!de){alert("Bitte Englisch und Deutsch eintragen.");return}
- words.push({en,de,pr:pr||"noch eintragen",ok:0,no:0});save();
- document.getElementById("en").value=document.getElementById("de").value=document.getElementById("pr").value="";
- pick();
+const en=document.getElementById("en").value.trim();
+const de=document.getElementById("de").value.trim();
+const pr=document.getElementById("pr").value.trim();
+if(!en||!de){alert("Bitte Englisch und Deutsch eintragen.");return}
+words.push({en,de,pr:pr||"noch eintragen",ok:0,no:0});save();
+document.getElementById("en").value="";
+document.getElementById("de").value="";
+document.getElementById("pr").value="";
 }
 function removeWord(i){if(confirm("Diese Vokabel löschen?")){words.splice(i,1);save();pick()}}
 function exportData(){
- const blob=new Blob([JSON.stringify({words,score,streak,hearts},null,2)],{type:"application/json"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="meine-vokabeln.json";a.click();
+const blob=new Blob([JSON.stringify({words,score,streak,hearts},null,2)],{type:"application/json"});
+const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="meine-vokabeln.json";a.click();
 }
 function importData(){document.getElementById("file").click()}
 function loadFile(e){
- const f=e.target.files[0];if(!f)return;const r=new FileReader();
- r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.words))throw 0;words=d.words;score=Number(d.score||0);streak=Number(d.streak||0);hearts=Number(d.hearts||5);save();pick();alert("Sicherung geladen!")}catch{alert("Die Datei konnte nicht geladen werden.")}};
- r.readAsText(f);
+const f=e.target.files[0];if(!f)return;
+const r=new FileReader();
+r.onload=()=>{
+try{
+const d=JSON.parse(r.result);
+if(!Array.isArray(d.words))throw 0;
+words=d.words;score=Number(d.score||0);streak=Number(d.streak||0);hearts=Number(d.hearts||5);
+save();pick();alert("Sicherung geladen!")
+}catch{alert("Die Datei konnte nicht geladen werden.")}
+};
+r.readAsText(f);
 }
 function resetAll(){
- if(confirm("Wirklich alle gespeicherten Vokabeln löschen und mit den Startvokabeln beginnen?")){
-  words=starter.map(x=>({en:x[0],de:x[1],pr:x[2],ok:0,no:0}));
+if(confirm("Wirklich alle gespeicherten Vokabeln löschen und mit den Startvokabeln beginnen?")){
+words=starter.map(x=>({en:x[0],de:x[1],pr:x[2],ok:0,no:0}));
 score=0;streak=0;hearts=5;save();pick();
- }
-}
+}}
 render();goHome();
 </script>
 </body>
