@@ -19,6 +19,7 @@
   .hidden{display:none}.answer{font-size:24px;text-align:center;margin:12px}
   label{font-weight:700}.feedback{text-align:center;font-weight:800;font-size:20px;margin:12px 0}
   .okmsg{color:#166534}.nomsg{color:#991b1b}
+  .nextBtn{font-size:17px;background:#315ee8;color:white;padding:13px 22px;margin-top:8px}
   .big{font-size:17px}.hero{text-align:center;font-size:58px}
 </style>
 </head>
@@ -67,6 +68,7 @@
     </div>
 
     <div id="feedback" class="feedback"></div>
+    <div class="row"><button id="nextBtn" class="nextBtn hidden" onclick="newQuestion()">➡️ Nächste Frage</button></div>
 
     <div id="answerBox" class="hidden">
       <div class="answer" id="answer"></div>
@@ -194,6 +196,8 @@ function pick(){
   locked=false;
   document.getElementById("answerBox").classList.add("hidden");
   document.getElementById("feedback").textContent="";
+  document.getElementById("feedback").className="feedback";
+  document.getElementById("nextBtn").classList.add("hidden");
   document.getElementById("userAnswer").value="";
   document.getElementById("userAnswer").disabled=false;
 
@@ -247,7 +251,7 @@ function checkAnswer(){
     streak++;
     current.ok++;
 
-    document.getElementById("feedback").textContent="✅ Richtig! +"+bonus+" Punkte";
+    document.getElementById("feedback").textContent="🎉 Gut gemacht! Richtig! +"+bonus+" Punkte";
     document.getElementById("feedback").className="feedback okmsg";
 
     if(streak%5===0) setTimeout(()=>alert("🔥 Super! "+streak+" richtige Antworten hintereinander!"),100);
@@ -256,20 +260,17 @@ function checkAnswer(){
     streak=0;
     hearts--;
 
-    document.getElementById("feedback").textContent="❌ Noch nicht – weiter üben!";
+    document.getElementById("feedback").textContent="❌ Leider falsch. Die richtige Antwort steht unten. Gut weiterüben!";
     document.getElementById("feedback").className="feedback nomsg";
 
     if(hearts<=0){
-      setTimeout(()=>{
-        alert("💪 Keine Herzen mehr! Du bekommst 5 neue Herzen und kannst weitermachen.");
-        hearts=5;
-        save();
-      },100);
+      alert("💪 Keine Herzen mehr! Du bekommst 5 neue Herzen und kannst weitermachen.");
+      hearts=5;
     }
   }
 
   save();
-  setTimeout(pick,900);
+  document.getElementById("nextBtn").classList.remove("hidden");
 }
 
 function toggleDirection(){
