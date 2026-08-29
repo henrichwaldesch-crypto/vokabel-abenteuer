@@ -143,9 +143,19 @@ let streak=Number(localStorage.getItem("tom_streak")||0);
 let done=0, index=-1, direction=0, answered=false;
 
 // Intelligente Wiederholung: Lernstand jeder Vokabel dauerhaft speichern.
-let learning=JSON.parse(localStorage.getItem("tom_learning")||"{}");
+let learning={};
+try {
+  const savedLearning=JSON.parse(localStorage.getItem("tom_learning")||"{}");
+  if(savedLearning && typeof savedLearning==="object" && !Array.isArray(savedLearning)){
+    learning=savedLearning;
+  }
+} catch(e) {
+  learning={};
+}
 words.forEach((_,i)=>{
-  if(!learning[i]) learning[i]={level:0,correct:0,wrong:0,due:0};
+  if(!learning[i] || typeof learning[i]!=="object"){
+    learning[i]={level:0,correct:0,wrong:0,due:0};
+  }
 });
 
 const $=id=>document.getElementById(id);
@@ -207,26 +217,34 @@ function startGame(){
   nextQuestion();
 }
 function chooseQuestionIndex(){
+  if(!Array.isArray(words) || words.length===0) return -1;
   const now=Date.now(), due=[];
   words.forEach((_,i)=>{
-    if(!learning[i]) learning[i]={level:0,correct:0,wrong:0,due:0};
+    if(!learning[i] || typeof learning[i]!=="object"){
+      learning[i]={level:0,correct:0,wrong:0,due:0};
+    }
     const l=learning[i];
-    if(l.due<=now) due.push(i);
+    if((Number(l.due)||0)<=now) due.push(i);
   });
   const pool=due.length?due:words.map((_,i)=>i);
   const weighted=[];
   pool.forEach(i=>{
-    const level=learning[i]?.level||0;
+    const level=Number(learning[i].level)||0;
     const weight=Math.max(1,6-level);
     for(let n=0;n<weight;n++) weighted.push(i);
   });
-  return weighted[Math.floor(Math.random()*weighted.length)];
+  return weighted.length ? weighted[Math.floor(Math.random()*weighted.length)] : 0;
 }
 function nextQuestion(){
   if(done>0 && done%20===0){
     $("game").classList.add("hidden"); $("pause").classList.remove("hidden"); return;
   }
   index=chooseQuestionIndex(); answered=false;
+  if(index<0 || !words[index]){
+    $("question").textContent="Keine Vokabeln gefunden";
+    $("feedback").innerHTML='<div class="feedback" style="color:#a52323">Bitte die Vokabelliste prüfen.</div>';
+    return;
+  }
   const w=words[index];
   $("question").textContent=direction===0?w.de.split(";")[0].trim():w.en;
   $("direction").textContent=direction===0?"Deutsch → Englisch":"Englisch → Deutsch";
