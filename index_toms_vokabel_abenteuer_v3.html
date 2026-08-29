@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Toms Vokabel-Abenteuer">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Toms Vokabel-Abenteuer</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:#f4f6fb; color:#182033; }
+  .wrap { max-width:1000px; margin:0 auto; padding:28px 18px 50px; }
+  h1 { margin:0; font-size:42px; }
+  .subtitle { color:#718096; font-size:22px; margin:8px 0 20px; }
+  .card { background:white; border-radius:24px; padding:28px; margin:18px 0;
+    box-shadow:0 5px 18px rgba(20,30,60,.07); text-align:center; }
+  .topbar { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+  button { border:0; border-radius:15px; padding:14px 22px; font-size:20px;
+    background:#e9eefc; color:#24457f; cursor:pointer; }
+  button.primary { background:#3164e8; color:white; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  button:active { transform:scale(.98); }
+  .stat { background:#eef2ff; padding:12px 18px; border-radius:22px; font-size:20px; }
+  .question { font-size:44px; font-weight:700; margin:25px 0 30px; }
+  .direction,.small { color:#718096; }
+  input { width:100%; padding:18px; border:3px solid #dce2ef; border-radius:15px;
+    font-size:24px; outline:none; }
+  input:focus { border-color:#3164e8; }
+  .actions { display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:16px; }
+  .feedback { font-size:25px; font-weight:700; margin:22px 0 8px; }
+  .answer { font-size:22px; margin:8px 0; }
+  .pause { font-size:26px; font-weight:700; }
+  .hidden { display:none; }
+  .progress { height:18px; background:#e7ebf4; border-radius:12px; overflow:hidden; margin:15px 0 8px; }
+  .progress > div { height:100%; width:0%; background:#3164e8; transition:width .35s; }
+  .reward { background:#fff7d6; border:2px solid #f0d66a; border-radius:20px; padding:18px; margin-top:18px; }
+  .reward h3 { margin:0 0 8px; font-size:25px; }
+  .reward button { margin-top:10px; background:#f3c928; color:#4d3b00; }
+  .chapter { font-size:16px; color:#718096; margin-top:8px; }
+  @media (max-width:600px) {
+    h1{font-size:32px}.subtitle{font-size:18px}.question{font-size:34px}.card{padding:20px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📚 Toms Vokabel-Abenteuer</h1>
+  <div class="subtitle">Hallo Tom! Sammle Punkte, lerne Vokabeln und verdiene dir Belohnungen. 🎮</div>
+
+  <div class="card">
+    <div class="topbar">
+      <button onclick="showStart()">🏠 Start</button>
+      <div class="stat">⭐ <span id="points">0</span></div>
+      <div class="stat">🔥 <span id="streak">0</span></div>
+      <div class="stat">📝 <span id="count">0</span>/20</div>
+    </div>
+  </div>
+
+  <div id="start" class="card">
+    <div style="font-size:64px">🎮</div>
+    <h2>Bereit, Tom?</h2>
+    <p style="font-size:21px">Übe deine Vokabeln, sammle Punkte und arbeite dich zur nächsten Belohnung vor!</p>
+    <div>
+      <strong>🎁 Nächste Belohnung: 100 Punkte</strong>
+      <div class="progress"><div id="rewardProgress"></div></div>
+      <div id="rewardText" class="small"></div>
+    </div>
+    <button class="primary" onclick="startGame()">▶️ Vokabeln lernen</button>
+    <div id="rewardBox"></div>
+  </div>
+
+  <div id="game" class="card hidden">
+    <div class="direction" id="direction">Deutsch → Englisch</div>
+    <div class="chapter" id="chapter"></div>
+    <div class="question" id="question">—</div>
+    <input id="answer" autocomplete="off" autocapitalize="none" placeholder="Deine Antwort hier eingeben …">
+    <div class="actions">
+      <button class="primary" id="checkBtn" onclick="checkAnswer()">✅ Antwort prüfen</button>
+      <button onclick="speakWord()">🔊 Anhören</button>
+    </div>
+    <div id="feedback"></div>
+    <div id="nextArea" class="hidden">
+      <button class="primary" onclick="nextQuestion()">➡️ Nächste Frage</button>
+    </div>
+    <div class="actions" style="margin-top:20px">
+      <button onclick="nextQuestion()">🔄 Neue Frage</button>
+      <button onclick="switchDirection()">↔️ Richtung wechseln</button>
+    </div>
+  </div>
+
+  <div id="pause" class="card hidden">
+    <div style="font-size:64px">☕</div>
+    <div class="pause">Super, Tom! Du hast 20 Übungen geschafft.</div>
+    <p style="font-size:20px">Zeit für eine kurze Pause. 🧠✨</p>
+    <button class="primary" onclick="continueAfterPause()">▶️ Weiterlernen</button>
+  </div>
+</div>
+
+<script>
+const words = [
+  {de:"gehen; fahren", en:"go", chapter:"Unit 1", example:"I go to school."},
+  {de:"sein", en:"be", chapter:"Unit 1", example:"I am happy."},
+  {de:"haben", en:"have", chapter:"Unit 1", example:"I have a book."},
+  {de:"machen", en:"do", chapter:"Unit 1", example:"I do my homework."},
+  {de:"gut", en:"good", chapter:"Unit 1", example:"This is good."},
+  {de:"Haus", en:"house", chapter:"Unit 1", example:"This is my house."},
+  {de:"Jahr", en:"year", chapter:"Unit 1", example:"One year has twelve months."},
+  {de:"Tag", en:"day", chapter:"Unit 1", example:"Have a nice day."},
+  {de:"Freund", en:"friend", chapter:"Unit 1", example:"He is my friend."},
+  {de:"Wasser", en:"water", chapter:"Unit 1", example:"I drink water."},
+  {de:"Essen", en:"food", chapter:"Unit 1", example:"The food is good."},
+  {de:"Schule", en:"school", chapter:"Unit 1", example:"I go to school."},
+  {de:"Buch", en:"book", chapter:"Unit 1", example:"I read a book."},
+  {de:"Hund", en:"dog", chapter:"Unit 1", example:"I have a dog."},
+  {de:"Katze", en:"cat", chapter:"Unit 1", example:"The cat is small."},
+  {de:"groß", en:"big", chapter:"Unit 1", example:"The house is big."},
+  {de:"klein", en:"small", chapter:"Unit 1", example:"The cat is small."},
+  {de:"schnell", en:"fast", chapter:"Unit 1", example:"The car is fast."},
+  {de:"langsam", en:"slow", chapter:"Unit 1", example:"The turtle is slow."},
+  {de:"neu", en:"new", chapter:"Unit 1", example:"This is my new book."},
+  {de:"alt", en:"old", chapter:"Unit 1", example:"My house is old."},
+  {de:"schön", en:"beautiful", chapter:"Unit 1", example:"It is beautiful."},
+  {de:"gehen", en:"walk", chapter:"Unit 1", example:"I walk to school."},
+  {de:"kommen", en:"come", chapter:"Unit 1", example:"Come here."},
+  {de:"sehen", en:"see", chapter:"Unit 1", example:"I see a dog."},
+  {de:"sprechen", en:"speak", chapter:"Unit 1", example:"I speak English."},
+  {de:"lernen", en:"learn", chapter:"Unit 1", example:"I learn English."},
+  {de:"spielen", en:"play", chapter:"Unit 1", example:"I play football."},
+  {de:"arbeiten", en:"work", chapter:"Unit 1", example:"I work every day."}
+];
+
+const rewards = [
+  {points:100, text:"30 Minuten zusätzliche Spielzeit 🎮"},
+  {points:200, text:"60 Minuten zusätzliche Spielzeit 🎮"},
+  {points:300, text:"Eine kleine Überraschung 🍦"},
+  {points:500, text:"Eine besondere Belohnung 🏆"}
+];
+
+let points=Number(localStorage.getItem("tom_points")||0);
+let streak=Number(localStorage.getItem("tom_streak")||0);
+let done=0, index=-1, direction=0, answered=false;
+let earnedRewards=JSON.parse(localStorage.getItem("tom_rewards")||"[]");
+
+const $=id=>document.getElementById(id);
+
+function saveProgress(){
+  localStorage.setItem("tom_points",points);
+  localStorage.setItem("tom_streak",streak);
+  localStorage.setItem("tom_rewards",JSON.stringify(earnedRewards));
+}
+function updateStats(){
+  $("points").textContent=points;
+  $("streak").textContent=streak;
+  $("count").textContent=done;
+  updateRewards();
+  saveProgress();
+}
+function nextReward(){
+  return rewards.find(r=>!earnedRewards.includes(r.points) && points<r.points) ||
+         rewards.find(r=>!earnedRewards.includes(r.points));
+}
+function updateRewards(){
+  const r=nextReward();
+  if(!r){
+    $("rewardProgress").style.width="100%";
+    $("rewardText").textContent="Alle bisherigen Belohnungen wurden erreicht! 🏆";
+    return;
+  }
+  const previous=rewards.filter(x=>x.points<r.points).reduce((m,x)=>Math.max(m,x.points),0);
+  const pct=Math.max(0,Math.min(100,((points-previous)/(r.points-previous))*100));
+  $("rewardProgress").style.width=pct+"%";
+  $("rewardText").textContent=points>=r.points
+    ? "🎉 Belohnung erreicht!"
+    : "Noch "+(r.points-points)+" Punkte bis "+r.text;
+  renderRewards();
+}
+function renderRewards(){
+  let html="";
+  rewards.forEach(r=>{
+    const earned=earnedRewards.includes(r.points);
+    const ready=points>=r.points && !earned;
+    html+=`<div class="reward"><h3>${earned?"✅":"🎁"} ${r.points} Punkte</h3>
+      <div>${r.text}</div>
+      ${ready?`<button onclick="claimReward(${r.points})">🎉 Belohnung einlösen</button>`:""}</div>`;
+  });
+  $("rewardBox").innerHTML=html;
+}
+function claimReward(p){
+  if(earnedRewards.includes(p) || points<p) return;
+  earnedRewards.push(p);
+  saveProgress();
+  updateRewards();
+  alert("🎉 Super, Tom! Deine Belohnung ist bereit. Papa bekommt jetzt Bescheid.");
+  const subject=encodeURIComponent("🎮 Tom hat eine Belohnung verdient!");
+  const body=encodeURIComponent(
+    "Hallo Papa,%0A%0ATom hat "+p+" Punkte im Vokabel-Abenteuer erreicht.%0A%0A" +
+    "Belohnung: "+rewards.find(r=>r.points===p).text+
+    "%0A%0ABitte die Belohnung einstellen. 🎉%0A%0ADein Vokabel-Abenteuer"
+  );
+  window.location.href="mailto:henrich.waldesch@gmx.de?subject="+subject+"&body="+body;
+}
+function showStart(){
+  $("start").classList.remove("hidden"); $("game").classList.add("hidden"); $("pause").classList.add("hidden");
+  updateRewards();
+}
+function startGame(){
+  $("start").classList.add("hidden"); $("pause").classList.add("hidden"); $("game").classList.remove("hidden");
+  nextQuestion();
+}
+function nextQuestion(){
+  if(done>0 && done%20===0){
+    $("game").classList.add("hidden"); $("pause").classList.remove("hidden"); return;
+  }
+  index=Math.floor(Math.random()*words.length); answered=false;
+  const w=words[index];
+  $("question").textContent=direction===0?w.de.split(";")[0].trim():w.en;
+  $("direction").textContent=direction===0?"Deutsch → Englisch":"Englisch → Deutsch";
+  $("chapter").textContent="📖 "+w.chapter;
+  $("answer").value=""; $("answer").disabled=false; $("checkBtn").disabled=false;
+  $("feedback").innerHTML=""; $("nextArea").classList.add("hidden"); $("answer").focus();
+}
+function normalize(s){return s.toLowerCase().trim().replace(/[.,!?;:]/g,"").replace(/\s+/g," ");}
+function acceptableAnswers(w){
+  return direction===0 ? w.en.split(";").map(normalize) : w.de.split(";").map(normalize);
+}
+function checkAnswer(){
+  if(answered)return;
+  const given=normalize($("answer").value); if(!given)return;
+  const w=words[index], expected=direction===0?w.en:w.de;
+  answered=true; done++;
+  const ok=acceptableAnswers(w).includes(given);
+  if(ok){
+    points+=5; streak++;
+    $("feedback").innerHTML='<div class="feedback" style="color:#176b3b">🎉 Gut gemacht, Tom! Richtig! +5 Punkte</div>';
+  }else{
+    streak=0;
+    $("feedback").innerHTML='<div class="feedback" style="color:#a52323">❌ Noch nicht richtig.</div>' +
+      '<div class="answer">Richtige Antwort: <b>'+expected+'</b></div>' +
+      '<button onclick="speakWord()" style="margin-top:8px">🔊 Noch einmal anhören</button>';
+  }
+  updateStats(); $("answer").disabled=true; $("checkBtn").disabled=true; $("nextArea").classList.remove("hidden");
+}
+function switchDirection(){direction=1-direction;nextQuestion();}
+function continueAfterPause(){done=0;$("pause").classList.add("hidden");$("game").classList.remove("hidden");nextQuestion();}
+function speakWord(){
+  const text=words[index].en;
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.82;
+    speechSynthesis.speak(u);
+  }
+}
+$("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
+updateStats();
+</script>
+</body>
+</html>
