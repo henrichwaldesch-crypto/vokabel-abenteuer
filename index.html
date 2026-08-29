@@ -70,6 +70,16 @@
     <div id="feedback" class="feedback"></div>
     <div class="row"><button id="nextBtn" class="nextBtn hidden" onclick="newQuestion()">➡️ Nächste Frage</button></div>
 
+    <div id="pauseBox" class="card hidden" style="margin-top:18px;text-align:center;background:#fff7ed">
+      <div style="font-size:42px">🧠⏸️</div>
+      <h2 style="margin:8px 0">Kurze Pause empfohlen!</h2>
+      <p style="font-size:17px">Du hast 20 Übungen geschafft. Eine kurze Pause kann helfen, das Gelernte besser zu behalten.</p>
+      <div class="row">
+        <button class="primary" onclick="continueLearning()">▶️ Weiterlernen</button>
+        <button onclick="takePause()">⏸️ Pause machen</button>
+      </div>
+    </div>
+
     <div id="answerBox" class="hidden">
       <div class="answer" id="answer"></div>
       <div class="pron" id="answerPron"></div>
@@ -133,6 +143,7 @@ if(savedWords){
 let score=Number(localStorage.getItem("vocabTrainerScore")||0);
 let streak=Number(localStorage.getItem("vocabTrainerStreak")||0);
 let hearts=Number(localStorage.getItem("vocabTrainerHearts")||5);
+let exercises=Number(localStorage.getItem("vocabTrainerExercises")||0);
 let current=null, direction=0, locked=false;
 
 function save(){
@@ -140,6 +151,7 @@ function save(){
   localStorage.setItem("vocabTrainerScore",score);
   localStorage.setItem("vocabTrainerStreak",streak);
   localStorage.setItem("vocabTrainerHearts",hearts);
+  localStorage.setItem("vocabTrainerExercises",exercises);
   render();
 }
 
@@ -198,6 +210,7 @@ function pick(){
   document.getElementById("feedback").textContent="";
   document.getElementById("feedback").className="feedback";
   document.getElementById("nextBtn").classList.add("hidden");
+  document.getElementById("pauseBox").classList.add("hidden");
   document.getElementById("userAnswer").value="";
   document.getElementById("userAnswer").disabled=false;
 
@@ -269,8 +282,32 @@ function checkAnswer(){
     }
   }
 
+  exercises++;
   save();
   document.getElementById("nextBtn").classList.remove("hidden");
+
+  if(exercises >= 20){
+    document.getElementById("pauseBox").classList.remove("hidden");
+  }
+}
+
+function continueLearning(){
+  exercises=0;
+  save();
+  document.getElementById("pauseBox").classList.add("hidden");
+}
+
+function takePause(){
+  exercises=0;
+  save();
+  document.getElementById("pauseBox").innerHTML = `
+    <div style="font-size:42px">☕⏸️</div>
+    <h2 style="margin:8px 0">Pause 😊</h2>
+    <p style="font-size:17px">Nimm dir ruhig ein paar Minuten Zeit. Wenn du bereit bist, kannst du einfach weitermachen.</p>
+    <div class="row">
+      <button class="primary" onclick="continueLearning()">▶️ Weiterlernen</button>
+    </div>`;
+  document.getElementById("pauseBox").classList.remove("hidden");
 }
 
 function toggleDirection(){
