@@ -222,7 +222,7 @@ function renderRewards(){
     ${ready?'<button onclick="claimReward()">🎉 Gutschein einlösen</button>':""}
   </div>`;
 }
-async async function claimReward(){
+async function claimReward(){
   if(points<REWARD_TARGET || sendingReward)return;
 
   sendingReward=true;
