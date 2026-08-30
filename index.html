@@ -91,6 +91,8 @@
       <button onclick="speakWord()">🔊 Anhören</button>
     </div>
     <div id="feedback"></div>
+    <div id="rewardContinueArea" class="hidden" style="margin-top:16px"></div>
+
     <div id="nextArea" class="hidden">
       <button class="primary" onclick="nextQuestion()">➡️ Nächste Frage</button>
     </div>
@@ -324,12 +326,9 @@ async function claimReward(){
         '</div>';
     }
 
-    setTimeout(()=>{
-      $("start").classList.add("hidden");
-      $("pause").classList.add("hidden");
-      $("game").classList.remove("hidden");
-      nextQuestion();
-    },1200);
+    $("rewardContinueArea").innerHTML=
+      '<button class="primary" onclick="continueAfterReward()">➡️ Weiterlernen</button>';
+    $("rewardContinueArea").classList.remove("hidden");
 
   }catch(error){
     console.error("EmailJS Fehler:",error);
@@ -450,6 +449,16 @@ function skipQuestion(){
   learning[index]=l;
 
   updateStats();
+  nextQuestion();
+}
+
+function continueAfterReward(){
+  $("rewardContinueArea").classList.add("hidden");
+  $("rewardContinueArea").innerHTML="";
+  $("feedback").innerHTML="";
+  $("start").classList.add("hidden");
+  $("pause").classList.add("hidden");
+  $("game").classList.remove("hidden");
   nextQuestion();
 }
 
