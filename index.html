@@ -150,7 +150,9 @@ const EMAILJS_PUBLIC_KEY = "aWI9VtGK8vDXIj7y7";
 
 let points=Number(localStorage.getItem("tom_points")||0);
 let streak=Number(localStorage.getItem("tom_streak")||0);
-let rewardCount=Number(localStorage.getItem("tom_rewards")||0);
+let storedRewardCount=Number(localStorage.getItem("tom_rewards"));
+let rewardCount=Number.isFinite(storedRewardCount) && storedRewardCount>=0 ? Math.floor(storedRewardCount) : 0;
+if(rewardCount===0) localStorage.setItem("tom_rewards","0");
 let sendingReward=false;
 let done=0, index=-1, direction=0, answered=false;
 
@@ -182,6 +184,7 @@ function saveProgress(){
   localStorage.setItem("tom_learning",JSON.stringify(learning));
 }
 function updateStats(){
+  if(!Number.isFinite(rewardCount) || rewardCount<0) rewardCount=0;
   $("points").textContent=points;
   $("streak").textContent=streak;
   $("rewards").textContent=rewardCount;
