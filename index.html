@@ -170,11 +170,12 @@ function initEmailJS(){
   return false;
 }
 
-const APP_VERSION="v12.5-final";
+const APP_VERSION="v12.5-final-start";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
   localStorage.removeItem("tom_points");
   localStorage.removeItem("tom_streak");
   localStorage.removeItem("tom_rewards");
+  localStorage.removeItem("tom_bonus_count");
   localStorage.removeItem("tom_learning");
   localStorage.setItem("tom_app_version",APP_VERSION);
 }
