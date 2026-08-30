@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="Toms Vokabel-Abenteuer">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Toms Vokabel-Abenteuer</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   * { box-sizing:border-box; }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -54,6 +55,7 @@
       <button onclick="showStart()">🏠 Start</button>
       <div class="stat">⭐ <span id="points">0</span></div>
       <div class="stat">🔥 <span id="streak">0</span></div>
+      <div class="stat">🏆 <span id="rewards">0</span> Gutscheine</div>
       <div class="stat">📝 <span id="count">0</span>/20</div>
     </div>
   </div>
@@ -68,6 +70,11 @@
       <div id="rewardText" class="small"></div>
     </div>
     <button class="primary" onclick="startGame()">▶️ Vokabeln lernen</button>
+    <div class="reward">
+      <h3>🏆 Deine Gutscheine</h3>
+      <div style="font-size:28px"><strong><span id="rewardCountLarge">0</span></strong></div>
+      <div class="small">Bereits verdiente Spielzeitgutscheine</div>
+    </div>
     <div id="rewardBox"></div>
     <div class="reward">
       <h3>🧠 Toms Lernstand</h3>
@@ -137,9 +144,14 @@ const words = [
 
 const REWARD_TARGET = 100;
 const REWARD_TEXT = "30 Minuten zusätzliche Spielzeit 🎮";
+const EMAILJS_SERVICE_ID = "service_00v29z";
+const EMAILJS_TEMPLATE_ID = "template_cpcoofd";
+const EMAILJS_PUBLIC_KEY = "aWI9VtGK8vDXIj7y7";
 
 let points=Number(localStorage.getItem("tom_points")||0);
 let streak=Number(localStorage.getItem("tom_streak")||0);
+let rewardCount=Number(localStorage.getItem("tom_rewards")||0);
+let sendingReward=false;
 let done=0, index=-1, direction=0, answered=false;
 
 // Intelligente Wiederholung: Lernstand jeder Vokabel dauerhaft speichern.
@@ -158,16 +170,22 @@ words.forEach((_,i)=>{
   }
 });
 
+// EmailJS: öffentlicher Schlüssel – der private GMX-Schlüssel bleibt ausschließlich bei EmailJS.
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
 const $=id=>document.getElementById(id);
 
 function saveProgress(){
   localStorage.setItem("tom_points",points);
   localStorage.setItem("tom_streak",streak);
+  localStorage.setItem("tom_rewards",rewardCount);
   localStorage.setItem("tom_learning",JSON.stringify(learning));
 }
 function updateStats(){
   $("points").textContent=points;
   $("streak").textContent=streak;
+  $("rewards").textContent=rewardCount;
+  $("rewardCountLarge").textContent=rewardCount;
   $("count").textContent=done;
   updateRewards();
   saveProgress();
@@ -195,18 +213,54 @@ function renderRewards(){
     ${ready?'<button onclick="claimReward()">🎉 Gutschein einlösen</button>':""}
   </div>`;
 }
-function claimReward(){
-  if(points<REWARD_TARGET)return;
-  const subject=encodeURIComponent("🎮 Tom hat einen Spielzeitgutschein verdient!");
-  const body=encodeURIComponent(
-    "Hallo Papa,\n\nTom hat im Vokabel-Abenteuer 100 Punkte erreicht. 🎉\n\n" +
-    "🎟️ Spielzeitgutschein: "+REWARD_TEXT+"\n\nBitte den Gutschein einstellen.\n"
-  );
-  points=0;
-  saveProgress();
-  updateStats();
-  alert("🎉 Super, Tom! Dein Spielzeitgutschein ist verdient. Papa bekommt jetzt Bescheid.");
-  window.location.href="mailto:henrich.waldesch@gmx.de?subject="+subject+"&body="+body;
+async function claimReward(){
+  if(points<REWARD_TARGET || sendingReward)return;
+
+  sendingReward=true;
+  const nextRewardNumber=rewardCount+1;
+  const rewardButton=document.querySelector('#rewardBox button');
+  if(rewardButton){
+    rewardButton.disabled=true;
+    rewardButton.textContent="📧 Gutschein wird gemeldet …";
+  }
+
+  const templateParams={
+    gutscheinnummer:String(nextRewardNumber),
+    gutscheine_gesamt:String(nextRewardNumber)
+  };
+
+  try{
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+
+    rewardCount=nextRewardNumber;
+    points=0;
+    saveProgress();
+    updateStats();
+
+    $("feedback").innerHTML=
+      '<div class="reward">' +
+      '<h3>🎉 Super, Tom!</h3>' +
+      '<div>Dein <b>'+nextRewardNumber+'. Spielzeitgutschein</b> wurde verdient. 🎟️</div>' +
+      '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>' +
+      '<div style="margin-top:8px">Jetzt geht es wieder bei <b>0 / 100 Punkten</b> los!</div>' +
+      '</div>';
+
+    alert("🎉 Gutschein Nr. "+nextRewardNumber+" wurde erfolgreich an Papa gemeldet!");
+  }catch(error){
+    console.error("EmailJS Fehler:",error);
+    if(rewardButton){
+      rewardButton.disabled=false;
+      rewardButton.textContent="🎉 Gutschein einlösen";
+    }
+    $("feedback").innerHTML=
+      '<div class="reward">' +
+      '<h3>⚠️ E-Mail konnte nicht gesendet werden</h3>' +
+      '<div>Deine 100 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div>' +
+      '</div>';
+  }finally{
+    sendingReward=false;
+    updateRewards();
+  }
 }
 function showStart(){
   $("start").classList.remove("hidden"); $("game").classList.add("hidden"); $("pause").classList.add("hidden");
