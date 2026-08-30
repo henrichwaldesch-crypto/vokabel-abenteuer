@@ -145,7 +145,22 @@ const REWARD_TARGET = 100;
 const REWARD_TEXT = "30 Minuten zusätzliche Spielzeit 🎮";
 const EMAILJS_SERVICE_ID = "service_00v29z";
 const EMAILJS_TEMPLATE_ID = "template_cpcoofd";
-const EMAILJS_PUBLIC_KEY = "aWI9vtGK8vDXIj7y7";
+const EMAILJS_PUBLIC_KEY = "aWi9vtGK8vDXJl7y7";
+
+let emailJsReady = false;
+function initEmailJS(){
+  try{
+    if(window.emailjs && typeof window.emailjs.init === "function"){
+      window.emailjs.init({publicKey: EMAILJS_PUBLIC_KEY});
+      emailJsReady = true;
+      return true;
+    }
+  }catch(e){
+    console.error("EmailJS Init-Fehler:", e);
+  }
+  emailJsReady = false;
+  return false;
+}
 
 const APP_VERSION="v8.1-final";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
@@ -227,7 +242,7 @@ async function claimReward(){
 
   sendingReward=true;
   const nextRewardNumber=rewardCount+1;
-  const rewardButton=document.querySelector('#rewardBox button');
+  const rewardButton=document.querySelector("#rewardBox button");
 
   if(rewardButton){
     rewardButton.disabled=true;
@@ -241,55 +256,77 @@ async function claimReward(){
 
   try{
     let sent=false;
+    let lastError=null;
 
-    // Prefer the official EmailJS browser SDK.
-    if(window.emailjs){
+    // 1) Official EmailJS browser SDK.
+    if(window.emailjs && typeof window.emailjs.send==="function"){
       if(!emailJsReady) initEmailJS();
+
       if(emailJsReady){
-        await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,templateParams);
-        sent=true;
+        try{
+          await window.emailjs.send(
+            EMAILJS_SERVICE_ID,
+            EMAILJS_TEMPLATE_ID,
+            templateParams
+          );
+          sent=true;
+        }catch(e){
+          lastError=e;
+          console.warn("EmailJS SDK-Versand fehlgeschlagen – REST-Fallback:", e);
+        }
       }
     }
 
-    // Fallback to the official REST endpoint.
+    // 2) Official EmailJS REST API as fallback.
     if(!sent){
-      const response=await fetch("https://api.emailjs.com/api/v1.0/email/send",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          service_id:EMAILJS_SERVICE_ID,
-          template_id:EMAILJS_TEMPLATE_ID,
-          user_id:EMAILJS_PUBLIC_KEY,
-          template_params:templateParams
-        })
-      });
+      const response=await fetch(
+        "https://api.emailjs.com/api/v1.0/email/send",
+        {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            service_id:EMAILJS_SERVICE_ID,
+            template_id:EMAILJS_TEMPLATE_ID,
+            user_id:EMAILJS_PUBLIC_KEY,
+            template_params:templateParams
+          })
+        }
+      );
+
       const responseText=await response.text();
-      if(!response.ok) throw new Error("EmailJS "+response.status+": "+responseText);
+
+      if(!response.ok){
+        throw new Error(
+          "EmailJS "+response.status+": "+responseText+
+          (lastError ? " | SDK: "+(lastError.text||lastError.message||lastError) : "")
+        );
+      }
+
+      sent=true;
     }
 
+    if(!sent){
+      throw new Error("Kein EmailJS-Versandweg verfügbar.");
+    }
+
+    // Gutschein erst nach bestätigtem Versand verbuchen.
     rewardCount=nextRewardNumber;
     points=0;
     streak=0;
+    done=0;
+    answered=false;
     saveProgress();
     updateStats();
 
     $("feedback").innerHTML=
-      '<div class="reward">' +
-      '<h3>🎉 Super, Tom!</h3>' +
-      '<div>Dein <b>'+nextRewardNumber+'. Spielzeitgutschein</b> wurde verdient. 🎟️</div>' +
-      '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>' +
-      '<div style="margin-top:8px">Jetzt geht es wieder bei <b>0 / 100 Punkten</b> los!</div>' +
+      '<div class="reward">'+
+      '<h3>🎉 Super, Tom!</h3>'+
+      '<div>Dein <b>'+nextRewardNumber+'. Spielzeitgutschein</b> wurde verdient. 🎟️</div>'+
+      '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>'+
+      '<div style="margin-top:8px">Jetzt geht es wieder bei <b>0 / 100 Punkten</b> los!</div>'+
       '</div>';
 
-    $("rewardBox").innerHTML=
-      '<div class="reward">' +
-      '<h3>🎁 Dein nächstes Ziel</h3>' +
-      '<div><strong>100 Punkte = '+REWARD_TEXT+'</strong></div>' +
-      '</div>';
-
-    // Neue Lernrunde automatisch starten
-    done=0;
-    answered=false;
+    // Neue Runde sofort starten.
     $("start").classList.add("hidden");
     $("pause").classList.add("hidden");
     $("game").classList.remove("hidden");
@@ -297,14 +334,17 @@ async function claimReward(){
 
   }catch(error){
     console.error("EmailJS Fehler:",error);
+
     if(rewardButton){
       rewardButton.disabled=false;
       rewardButton.textContent="🎉 Gutschein einlösen";
     }
+
     $("feedback").innerHTML=
-      '<div class="reward">' +
-      '<h3>⚠️ E-Mail konnte nicht gesendet werden</h3>' +
-      '<div>Die 100 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div>' +
+      '<div class="reward">'+
+      '<h3>⚠️ E-Mail konnte nicht gesendet werden</h3>'+
+      '<div>Die 100 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div>'+
+      '<div class="small" style="margin-top:8px">Der Gutschein wird erst nach erfolgreichem Mailversand gezählt.</div>'+
       '</div>';
   }finally{
     sendingReward=false;
@@ -409,6 +449,7 @@ document.addEventListener("click",e=>{
   if(btn) claimReward();
 });
 $("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
+initEmailJS();
 updateStats();
 </script>
 </body>
