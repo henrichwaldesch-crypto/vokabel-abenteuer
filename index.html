@@ -170,7 +170,7 @@ function initEmailJS(){
   return false;
 }
 
-const APP_VERSION="v8.1-final";
+const APP_VERSION="v12.5-final";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
   localStorage.removeItem("tom_points");
   localStorage.removeItem("tom_streak");
@@ -334,8 +334,9 @@ async function claimReward(){
 
     $("rewardContinueArea").innerHTML=
       '<button class="primary" onclick="continueAfterReward()">➡️ Weiterlernen</button>';
+    // Nach dem Einlösen bleibt ausschließlich „Weiterlernen“ sichtbar.
     $("nextArea").classList.add("hidden");
-    document.querySelector("#game .actions:last-of-type").classList.add("hidden");
+    $("secondaryActions").classList.add("hidden");
     $("rewardContinueArea").classList.remove("hidden");
 
   }catch(error){
@@ -451,8 +452,10 @@ function checkAnswer(){
   $("answer").disabled=true; $("checkBtn").disabled=true;
 
   if(points>=REWARD_TARGET){
+    // Sobald ein Gutschein freigespielt ist, gibt es nur noch die Gutschein-Aktion.
     $("nextArea").classList.add("hidden");
     $("secondaryActions").classList.add("hidden");
+    $("rewardContinueArea").classList.add("hidden");
     $("feedback").innerHTML += '<div class="reward"><h3>🎟️ SPIELZEITGUTSCHEIN FREIGESPIELT!</h3><div>Tom, du hast 200 Punkte erreicht! 🎮</div><button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button></div>';
   }else{
     $("nextArea").classList.remove("hidden");
