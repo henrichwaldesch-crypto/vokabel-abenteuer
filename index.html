@@ -59,7 +59,8 @@
       <div class="stat">📝 <span id="count">0</span>/20</div>
     </div>
   </div>
-  <div id="start" class="card">
+  <div id="emailDiag" class="small" style="margin:8px 0 0;font-size:13px"></div>
+<div id="start" class="card">
     <div style="font-size:64px">🎮</div>
     <h2>Bereit, Tom?</h2>
     <p style="font-size:21px">Übe deine Vokabeln, sammle Punkte und arbeite dich zur nächsten Belohnung vor!</p>
@@ -340,11 +341,19 @@ async function claimReward(){
       rewardButton.textContent="🎉 Gutschein einlösen";
     }
 
+    const status = error && error.status ? error.status : "unbekannt";
+    const text = error && (error.text || error.message) ? (error.text || error.message) : String(error);
+
     $("feedback").innerHTML=
       '<div class="reward">'+
       '<h3>⚠️ E-Mail konnte nicht gesendet werden</h3>'+
-      '<div>Die 100 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div>'+
-      '<div class="small" style="margin-top:8px">Der Gutschein wird erst nach erfolgreichem Mailversand gezählt.</div>'+
+      '<div>Die 100 Punkte bleiben erhalten.</div>'+
+      '<div style="margin-top:10px"><b>Diagnose:</b></div>'+
+      '<div style="margin-top:5px;font-family:monospace;font-size:15px;word-break:break-word;background:#fff;padding:10px;border-radius:10px;text-align:left">'+
+      'Status: '+String(status)+'<br>'+
+      'Meldung: '+String(text).replace(/</g,"&lt;").replace(/>/g,"&gt;")+
+      '</div>'+
+      '<div class="small" style="margin-top:8px">Diese Meldung brauchen wir nur für den Test.</div>'+
       '</div>';
   }finally{
     sendingReward=false;
@@ -450,6 +459,10 @@ document.addEventListener("click",e=>{
 });
 $("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
 initEmailJS();
+const emailDiag = $("emailDiag");
+if(emailDiag){
+  emailDiag.textContent = "📧 EmailJS: "+(emailJsReady ? "bereit" : "nicht geladen");
+}
 updateStats();
 </script>
 </body>
