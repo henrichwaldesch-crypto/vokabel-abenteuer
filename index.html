@@ -74,7 +74,16 @@
       <div class="progress"><div id="rewardProgress"></div></div>
       <div id="rewardText" class="small"></div>
     </div>
-    <button class="primary" onclick="startGame()">▶️ Vokabeln lernen</button>
+    <div class="reward" style="text-align:left">
+      <h3 style="text-align:center">📚 Was möchtest du lernen?</h3>
+      <button class="primary" style="width:100%;margin-top:6px" onclick="selectUnit('unit1')">📘 Unit 1 – School life</button>
+      <div class="small" style="text-align:center;margin:8px 0 2px">Start: Unit 1 inkl. „Check in“</div>
+      <button style="width:100%;margin-top:10px" onclick="selectUnit('all')">📚 Alle bisher erfassten Vokabeln</button>
+      <button disabled style="width:100%;margin-top:10px;opacity:.45">📘 Unit 2 – folgt später</button>
+      <button disabled style="width:100%;margin-top:10px;opacity:.45">📘 Unit 3 – folgt später</button>
+      <button disabled style="width:100%;margin-top:10px;opacity:.45">🔄 Wiederholen – wird später ergänzt</button>
+      <div class="small" style="text-align:center;margin-top:12px">Station 1 kommt später dazu.</div>
+    </div>
     <div class="reward">
       <h3>🏆 Deine Gutscheine</h3>
       <div style="font-size:28px"><strong><span id="rewardCountLarge">0</span></strong></div>
@@ -167,7 +176,7 @@ function initEmailJS(){
   return false;
 }
 
-const APP_VERSION="v12.6-unit1-school-life-start";
+const APP_VERSION="v12.7-unit-selection-start";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
   localStorage.removeItem("tom_points");
   localStorage.removeItem("tom_streak");
@@ -375,9 +384,18 @@ function showStart(){
   $("start").classList.remove("hidden"); $("game").classList.add("hidden"); $("pause").classList.add("hidden");
   updateRewards();
 }
-function startGame(){
-  $("start").classList.add("hidden"); $("pause").classList.add("hidden"); $("game").classList.remove("hidden");
+let selectedMode="unit1";
+
+function selectUnit(mode){
+  selectedMode=mode;
+  $("start").classList.add("hidden");
+  $("pause").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  done=0;
   nextQuestion();
+}
+function startGame(){
+  selectUnit("unit1");
 }
 function chooseQuestionIndex(){
   if(!Array.isArray(words) || words.length===0) return -1;
