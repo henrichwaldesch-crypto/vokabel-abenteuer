@@ -222,7 +222,7 @@ function renderRewards(){
     ${ready?'<button onclick="claimReward()">🎉 Gutschein einlösen</button>':""}
   </div>`;
 }
-async function claimReward(){
+async async function claimReward(){
   if(points<REWARD_TARGET || sendingReward)return;
 
   sendingReward=true;
@@ -268,7 +268,7 @@ async function claimReward(){
       '</div>';
   }finally{
     sendingReward=false;
-    updateRewards();
+    updateStats();
   }
 }
 const testMode = new URLSearchParams(window.location.search).get("test") === "1";
