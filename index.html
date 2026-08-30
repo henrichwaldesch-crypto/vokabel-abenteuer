@@ -428,26 +428,22 @@ function checkAnswer(){
   }
 }
 function skipQuestion(){
-  // "Neue Frage" bedeutet: Tom kennt die Antwort nicht.
-  // Wenn die aktuelle Frage noch nicht beantwortet wurde,
-  // wird sie daher wie eine falsche Antwort mit -2 Punkten gewertet.
-  if(!answered){
-    const w=words[index];
-    const l=learning[index]||{level:0,correct:0,wrong:0,due:0};
+  // "Neue Frage" = Antwort nicht gewusst.
+  // Deshalb exakt wie eine falsche Antwort: -2 Punkte.
+  const l=learning[index]||{level:0,correct:0,wrong:0,due:0};
 
-    points=Math.max(0,points-2);
-    streak=0;
-    done++;
-    l.wrong++;
-    l.level=Math.max(0,l.level-1);
-    l.due=Date.now()+20*1000;
-    learning[index]=l;
+  points=Math.max(0,points-2);
+  streak=0;
+  done++;
+  l.wrong++;
+  l.level=Math.max(0,l.level-1);
+  l.due=Date.now()+20*1000;
+  learning[index]=l;
 
-    updateStats();
-  }
-
+  updateStats();
   nextQuestion();
 }
+
 function switchDirection(){direction=1-direction;nextQuestion();}
 function continueAfterPause(){done=0;$("pause").classList.add("hidden");$("game").classList.remove("hidden");nextQuestion();}
 function speakWord(){
