@@ -118,35 +118,32 @@
 
 <script>
 const words = [
-  {de:"gehen; fahren", en:"go", chapter:"Unit 1", example:"I go to school."},
-  {de:"sein", en:"be", chapter:"Unit 1", example:"I am happy."},
-  {de:"haben", en:"have", chapter:"Unit 1", example:"I have a book."},
-  {de:"machen", en:"do", chapter:"Unit 1", example:"I do my homework."},
-  {de:"gut", en:"good", chapter:"Unit 1", example:"This is good."},
-  {de:"Haus", en:"house", chapter:"Unit 1", example:"This is my house."},
-  {de:"Jahr", en:"year", chapter:"Unit 1", example:"One year has twelve months."},
-  {de:"Tag", en:"day", chapter:"Unit 1", example:"Have a nice day."},
-  {de:"Freund", en:"friend", chapter:"Unit 1", example:"He is my friend."},
-  {de:"Wasser", en:"water", chapter:"Unit 1", example:"I drink water."},
-  {de:"Essen", en:"food", chapter:"Unit 1", example:"The food is good."},
-  {de:"Schule", en:"school", chapter:"Unit 1", example:"I go to school."},
-  {de:"Buch", en:"book", chapter:"Unit 1", example:"I read a book."},
-  {de:"Hund", en:"dog", chapter:"Unit 1", example:"I have a dog."},
-  {de:"Katze", en:"cat", chapter:"Unit 1", example:"The cat is small."},
-  {de:"groß", en:"big", chapter:"Unit 1", example:"The house is big."},
-  {de:"klein", en:"small", chapter:"Unit 1", example:"The cat is small."},
-  {de:"schnell", en:"fast", chapter:"Unit 1", example:"The car is fast."},
-  {de:"langsam", en:"slow", chapter:"Unit 1", example:"The turtle is slow."},
-  {de:"neu", en:"new", chapter:"Unit 1", example:"This is my new book."},
-  {de:"alt", en:"old", chapter:"Unit 1", example:"My house is old."},
-  {de:"schön", en:"beautiful", chapter:"Unit 1", example:"It is beautiful."},
-  {de:"gehen", en:"walk", chapter:"Unit 1", example:"I walk to school."},
-  {de:"kommen", en:"come", chapter:"Unit 1", example:"Come here."},
-  {de:"sehen", en:"see", chapter:"Unit 1", example:"I see a dog."},
-  {de:"sprechen", en:"speak", chapter:"Unit 1", example:"I speak English."},
-  {de:"lernen", en:"learn", chapter:"Unit 1", example:"I learn English."},
-  {de:"spielen", en:"play", chapter:"Unit 1", example:"I play football."},
-  {de:"arbeiten", en:"work", chapter:"Unit 1", example:"I work every day."}
+  {de:"Schule", en:"school", chapter:"Unit 1 – School life", example:"My school is old."},
+  {de:"das Leben; die Leben", en:"life; lives", chapter:"Unit 1 – School life", example:"My life is great. Katie's and Nisha's lives are great."},
+  {de:"gehen; fahren", en:"go", chapter:"Unit 1 – School life", example:"I go to TTS."},
+  {de:"in; zu; nach; bis", en:"to", chapter:"Unit 1 – School life", example:"I go to TTS."},
+  {de:"in; auf", en:"in", chapter:"Unit 1 – School life", example:"Wird durch das Deutsche so verwendet."},
+  {de:"die Klasse; die Jahrgangsstufe; das Jahr", en:"year", chapter:"Unit 1 – School life", example:"Year 7 (England) = 5. Klasse (Deutschland)"},
+  {de:"die Uniform", en:"uniform", chapter:"Unit 1 – School life", example:"It's my uniform. It is blue."},
+  {de:"er; sie; es ist", en:"it's", chapter:"Unit 1 – School life", example:"It's my uniform. It is blue."},
+  {de:"okay", en:"OK", chapter:"Unit 1 – School life", example:"OK."},
+  {de:"der Klassenlehrer; die Klassenlehrerin", en:"tutor", chapter:"Unit 1 – School life", example:"That is my tutor."},
+  {de:"Herr (Anrede)", en:"Mr", chapter:"Unit 1 – School life", example:"Mr Turner is Elliot's tutor."},
+  {de:"er ist", en:"he's", chapter:"Unit 1 – School life", example:"He's my tutor. He is nice."},
+  {de:"ein; eine", en:"a", chapter:"Unit 1 – School life", example:"Mr Turner is a tutor."},
+  {de:"Wissenschaft; Naturwissenschaft", en:"science", chapter:"Unit 1 – School life", example:"He's my tutor and a science teacher."},
+  {de:"der Lehrer; die Lehrerin", en:"teacher", chapter:"Unit 1 – School life", example:"Mrs Bashir is a teacher."},
+  {de:"Englisch; englisch; aus England", en:"English", chapter:"Unit 1 – School life", example:"English."},
+  {de:"Frau (Anrede)", en:"Mrs", chapter:"Unit 1 – School life", example:"Mrs Bashir is a teacher."},
+  {de:"sie ist", en:"she's", chapter:"Unit 1 – School life", example:"She's a teacher. She is nice."},
+  {de:"der Hausmeister; die Hausmeisterin", en:"caretaker", chapter:"Unit 1 – School life", example:"Mrs Warren is the caretaker at TTS."},
+  {de:"immer", en:"always", chapter:"Unit 1 – School life", example:"Always."},
+  {de:"beschäftigt; belebt; arbeitsreich", en:"busy", chapter:"Unit 1 – School life", example:"Busy."},
+  {de:"der Freund; die Freundin", en:"friend", chapter:"Unit 1 – School life", example:"Josh is Elliot's friend."},
+  {de:"neu", en:"new", chapter:"Unit 1 – School life", example:"New."},
+  {de:"die Klasse; der Unterricht; der Kurs; die Unterrichtsstunde", en:"class", chapter:"Unit 1 – School life", example:"I'm in class 5c."},
+  {de:"cool; super; kühl", en:"cool", chapter:"Unit 1 – School life", example:"My friends are cool."},
+  {de:"Musik", en:"music", chapter:"Unit 1 – School life", example:"Music."},
 ];
 
 const REWARD_TARGET = 200;
@@ -170,7 +167,7 @@ function initEmailJS(){
   return false;
 }
 
-const APP_VERSION="v12.5-final-start";
+const APP_VERSION="v12.6-unit1-school-life-start";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
   localStorage.removeItem("tom_points");
   localStorage.removeItem("tom_streak");
