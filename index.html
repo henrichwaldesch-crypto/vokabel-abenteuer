@@ -145,9 +145,9 @@ const REWARD_TARGET = 100;
 const REWARD_TEXT = "30 Minuten zusätzliche Spielzeit 🎮";
 const EMAILJS_SERVICE_ID = "service_00v29z";
 const EMAILJS_TEMPLATE_ID = "template_cpcoofd";
-const EMAILJS_PUBLIC_KEY = "aWI9VtGK8vDXIj7y7";
+const EMAILJS_PUBLIC_KEY = "aWI9vtGK8vDXIj7y7";
 
-const APP_VERSION="v8-final";
+const APP_VERSION="v8.1-final";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
   localStorage.removeItem("tom_points");
   localStorage.removeItem("tom_streak");
@@ -287,8 +287,13 @@ async function claimReward(){
       '<div><strong>100 Punkte = '+REWARD_TEXT+'</strong></div>' +
       '</div>';
 
-    if($("answer")) $("answer").disabled=true;
-    if($("checkBtn")) $("checkBtn").disabled=true;
+    // Neue Lernrunde automatisch starten
+    done=0;
+    answered=false;
+    $("start").classList.add("hidden");
+    $("pause").classList.add("hidden");
+    $("game").classList.remove("hidden");
+    nextQuestion();
 
   }catch(error){
     console.error("EmailJS Fehler:",error);
