@@ -43,7 +43,7 @@
     h1{font-size:32px}.subtitle{font-size:18px}.question{font-size:34px}.card{padding:20px}
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 </head>
 <body>
 <div class="wrap">
@@ -59,8 +59,7 @@
       <div class="stat">📝 <span id="count">0</span>/20</div>
     </div>
   </div>
-  <div id="emailDiag" class="small" style="margin:8px 0 0;font-size:13px"></div>
-<div id="start" class="card">
+  <div id="start" class="card">
     <div style="font-size:64px">🎮</div>
     <h2>Bereit, Tom?</h2>
     <p style="font-size:21px">Übe deine Vokabeln, sammle Punkte und arbeite dich zur nächsten Belohnung vor!</p>
@@ -75,7 +74,7 @@
       <div style="font-size:28px"><strong><span id="rewardCountLarge">0</span></strong></div>
       <div class="small">Bereits verdiente Spielzeitgutscheine</div>
     </div>
-    <div id="rewardBox"></div>
+    <div id="rewardBox"></div><div id="mailDiagnostic" class="small" style="display:none;margin-top:12px;padding:12px;background:#f4f6fb;border-radius:12px;text-align:left;word-break:break-word"></div>
     <div class="reward">
       <h3>🧠 Toms Lernstand</h3>
       <div id="learningStats" class="small"></div>
@@ -244,73 +243,50 @@ async function claimReward(){
   sendingReward=true;
   const nextRewardNumber=rewardCount+1;
   const rewardButton=document.querySelector("#rewardBox button");
+  const diag=document.getElementById("mailDiagnostic");
 
   if(rewardButton){
     rewardButton.disabled=true;
-    rewardButton.textContent="📧 Gutschein wird gemeldet …";
+    rewardButton.textContent="📧 Sende E-Mail …";
+  }
+  if(diag){
+    diag.style.display="block";
+    diag.innerHTML="<b>📧 Mailtest läuft …</b><br>Bitte kurz warten.";
   }
 
-  const templateParams={
+  const params={
     gutscheinnummer:String(nextRewardNumber),
     gutscheine_gesamt:String(nextRewardNumber)
   };
 
+  const payload={
+    service_id:EMAILJS_SERVICE_ID,
+    template_id:EMAILJS_TEMPLATE_ID,
+    user_id:EMAILJS_PUBLIC_KEY,
+    template_params:params
+  };
+
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),10000);
+
   try{
-    let sent=false;
-    let lastError=null;
-
-    // 1) Official EmailJS browser SDK.
-    if(window.emailjs && typeof window.emailjs.send==="function"){
-      if(!emailJsReady) initEmailJS();
-
-      if(emailJsReady){
-        try{
-          await window.emailjs.send(
-            EMAILJS_SERVICE_ID,
-            EMAILJS_TEMPLATE_ID,
-            templateParams
-          );
-          sent=true;
-        }catch(e){
-          lastError=e;
-          console.warn("EmailJS SDK-Versand fehlgeschlagen – REST-Fallback:", e);
-        }
+    const response=await fetch(
+      "https://api.emailjs.com/api/v1.0/email/send",
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload),
+        signal:controller.signal
       }
+    );
+
+    const text=await response.text();
+
+    if(!response.ok){
+      throw new Error("HTTP "+response.status+" – "+text);
     }
 
-    // 2) Official EmailJS REST API as fallback.
-    if(!sent){
-      const response=await fetch(
-        "https://api.emailjs.com/api/v1.0/email/send",
-        {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            service_id:EMAILJS_SERVICE_ID,
-            template_id:EMAILJS_TEMPLATE_ID,
-            user_id:EMAILJS_PUBLIC_KEY,
-            template_params:templateParams
-          })
-        }
-      );
-
-      const responseText=await response.text();
-
-      if(!response.ok){
-        throw new Error(
-          "EmailJS "+response.status+": "+responseText+
-          (lastError ? " | SDK: "+(lastError.text||lastError.message||lastError) : "")
-        );
-      }
-
-      sent=true;
-    }
-
-    if(!sent){
-      throw new Error("Kein EmailJS-Versandweg verfügbar.");
-    }
-
-    // Gutschein erst nach bestätigtem Versand verbuchen.
+    // Erst nach bestätigtem 200-OK wird der Gutschein verbucht.
     rewardCount=nextRewardNumber;
     points=0;
     streak=0;
@@ -319,45 +295,53 @@ async function claimReward(){
     saveProgress();
     updateStats();
 
+    if(diag){
+      diag.innerHTML="<b style='color:#176b3b'>✅ E-Mail erfolgreich an EmailJS übermittelt.</b><br>Status: "+
+        response.status+"<br>Antwort: "+text;
+    }
+
     $("feedback").innerHTML=
       '<div class="reward">'+
       '<h3>🎉 Super, Tom!</h3>'+
       '<div>Dein <b>'+nextRewardNumber+'. Spielzeitgutschein</b> wurde verdient. 🎟️</div>'+
       '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>'+
-      '<div style="margin-top:8px">Jetzt geht es wieder bei <b>0 / 100 Punkten</b> los!</div>'+
       '</div>';
 
     // Neue Runde sofort starten.
-    $("start").classList.add("hidden");
-    $("pause").classList.add("hidden");
-    $("game").classList.remove("hidden");
-    nextQuestion();
+    setTimeout(()=>{
+      $("start").classList.add("hidden");
+      $("pause").classList.add("hidden");
+      $("game").classList.remove("hidden");
+      nextQuestion();
+    },1200);
 
   }catch(error){
-    console.error("EmailJS Fehler:",error);
+    console.error("Mailtest Fehler:",error);
+
+    let msg=String(error && error.message ? error.message : error);
+    if(error && error.name==="AbortError"){
+      msg="Zeitüberschreitung nach 10 Sekunden – keine Antwort von EmailJS.";
+    }
 
     if(rewardButton){
       rewardButton.disabled=false;
       rewardButton.textContent="🎉 Gutschein einlösen";
     }
 
-    const status = error && error.status ? error.status : "unbekannt";
-    const text = error && (error.text || error.message) ? (error.text || error.message) : String(error);
+    if(diag){
+      diag.innerHTML="<b style='color:#a52323'>❌ Mailversand fehlgeschlagen</b><br>"+
+        "Fehler: "+msg.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
 
     $("feedback").innerHTML=
       '<div class="reward">'+
       '<h3>⚠️ E-Mail konnte nicht gesendet werden</h3>'+
       '<div>Die 100 Punkte bleiben erhalten.</div>'+
-      '<div style="margin-top:10px"><b>Diagnose:</b></div>'+
-      '<div style="margin-top:5px;font-family:monospace;font-size:15px;word-break:break-word;background:#fff;padding:10px;border-radius:10px;text-align:left">'+
-      'Status: '+String(status)+'<br>'+
-      'Meldung: '+String(text).replace(/</g,"&lt;").replace(/>/g,"&gt;")+
-      '</div>'+
-      '<div class="small" style="margin-top:8px">Diese Meldung brauchen wir nur für den Test.</div>'+
+      '<div style="margin-top:8px">Bitte die Diagnose direkt darunter beachten.</div>'+
       '</div>';
   }finally{
+    clearTimeout(timeout);
     sendingReward=false;
-    updateStats();
   }
 }
 
@@ -458,11 +442,6 @@ document.addEventListener("click",e=>{
   if(btn) claimReward();
 });
 $("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
-initEmailJS();
-const emailDiag = $("emailDiag");
-if(emailDiag){
-  emailDiag.textContent = "📧 EmailJS: "+(emailJsReady ? "bereit" : "nicht geladen");
-}
 updateStats();
 </script>
 </body>
