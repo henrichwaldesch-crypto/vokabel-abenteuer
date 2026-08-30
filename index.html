@@ -95,7 +95,7 @@
       <button class="primary" onclick="nextQuestion()">➡️ Nächste Frage</button>
     </div>
     <div class="actions" style="margin-top:20px">
-      <button onclick="nextQuestion()">🔄 Neue Frage</button>
+      <button onclick="skipQuestion()">🔄 Neue Frage</button>
       <button onclick="switchDirection()">↔️ Richtung wechseln</button>
     </div>
   </div>
@@ -426,6 +426,27 @@ function checkAnswer(){
   if(points>=REWARD_TARGET){
     $("feedback").innerHTML += '<div class="reward"><h3>🎟️ SPIELZEITGUTSCHEIN FREIGESPIELT!</h3><div>Tom, du hast 100 Punkte erreicht! 🎮</div><button class="claimRewardBtn">🎉 Gutschein einlösen</button></div>';
   }
+}
+function skipQuestion(){
+  // "Neue Frage" bedeutet: Tom kennt die Antwort nicht.
+  // Wenn die aktuelle Frage noch nicht beantwortet wurde,
+  // wird sie daher wie eine falsche Antwort mit -2 Punkten gewertet.
+  if(!answered){
+    const w=words[index];
+    const l=learning[index]||{level:0,correct:0,wrong:0,due:0};
+
+    points=Math.max(0,points-2);
+    streak=0;
+    done++;
+    l.wrong++;
+    l.level=Math.max(0,l.level-1);
+    l.due=Date.now()+20*1000;
+    learning[index]=l;
+
+    updateStats();
+  }
+
+  nextQuestion();
 }
 function switchDirection(){direction=1-direction;nextQuestion();}
 function continueAfterPause(){done=0;$("pause").classList.add("hidden");$("game").classList.remove("hidden");nextQuestion();}
