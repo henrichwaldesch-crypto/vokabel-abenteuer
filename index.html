@@ -59,6 +59,12 @@
       <div class="stat">📝 <span id="count">0</span>/20</div>
     </div>
   </div>
+  <div id="testPanel" class="card hidden" style="border:2px dashed #f0b429">
+    <h3>🧪 Testmodus</h3>
+    <p class="small">Nur sichtbar mit <code>?test=1</code>.</p>
+    <button class="primary" onclick="setTestPoints()">⭐ Auf 195 Punkte setzen</button>
+  </div>
+
   <div id="start" class="card">
     <div style="font-size:64px">🎮</div>
     <h2>Bereit, Tom?</h2>
@@ -351,6 +357,17 @@ async function claimReward(){
     sendingReward=false;
     updateRewards();
   }
+}
+
+const testMode = new URLSearchParams(window.location.search).get("test") === "1";
+if(testMode) $("testPanel").classList.remove("hidden");
+
+function setTestPoints(){
+  points=195;
+  saveProgress();
+  updateStats();
+  updateRewards();
+  alert("🧪 Testmodus: 195 Punkte gesetzt.");
 }
 
 function showStart(){
