@@ -7,7 +7,6 @@
 <meta name="apple-mobile-web-app-title" content="Toms Vokabel-Abenteuer">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Toms Vokabel-Abenteuer</title>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   * { box-sizing:border-box; }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -152,10 +151,12 @@ const REWARD_TARGET = 100;
 const REWARD_TEXT = "30 Minuten zusätzliche Spielzeit 🎮";
 const EMAILJS_SERVICE_ID = "service_00v29z";
 const EMAILJS_TEMPLATE_ID = "template_cpcoofd";
-const EMAILJS_PUBLIC_KEY = "aWI9vtGK8vDXIj7y7";
+const EMAILJS_PUBLIC_KEY = "aWI9VtGK8vDXIj7y7";
 
-let points=Number(localStorage.getItem("tom_points")||0);
-let streak=Number(localStorage.getItem("tom_streak")||0);
+let storedPoints=Number(localStorage.getItem("tom_points"));
+let points=Number.isFinite(storedPoints) && storedPoints>=0 ? Math.floor(storedPoints) : 0;
+let storedStreak=Number(localStorage.getItem("tom_streak"));
+let streak=Number.isFinite(storedStreak) && storedStreak>=0 ? Math.floor(storedStreak) : 0;
 let storedRewardCount=Number(localStorage.getItem("tom_rewards"));
 let rewardCount=Number.isFinite(storedRewardCount) && storedRewardCount>=0 ? Math.floor(storedRewardCount) : 0;
 if(rewardCount===0) localStorage.setItem("tom_rewards","0");
@@ -177,9 +178,6 @@ words.forEach((_,i)=>{
     learning[i]={level:0,correct:0,wrong:0,due:0};
   }
 });
-
-// EmailJS: öffentlicher Schlüssel – der private GMX-Schlüssel bleibt ausschließlich bei EmailJS.
-emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
 const $=id=>document.getElementById(id);
 
@@ -228,18 +226,34 @@ async function claimReward(){
   sendingReward=true;
   const nextRewardNumber=rewardCount+1;
   const rewardButton=document.querySelector('#rewardBox button');
+
   if(rewardButton){
     rewardButton.disabled=true;
     rewardButton.textContent="📧 Gutschein wird gemeldet …";
   }
 
-  const templateParams={
-    gutscheinnummer:String(nextRewardNumber),
-    gutscheine_gesamt:String(nextRewardNumber)
+  const payload={
+    service_id: EMAILJS_SERVICE_ID,
+    template_id: EMAILJS_TEMPLATE_ID,
+    user_id: EMAILJS_PUBLIC_KEY,
+    template_params:{
+      gutscheinnummer:String(nextRewardNumber),
+      gutscheine_gesamt:String(nextRewardNumber)
+    }
   };
 
   try{
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+    const response=await fetch("https://api.emailjs.com/api/v1.0/email/send",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+
+    const responseText=await response.text();
+
+    if(!response.ok){
+      throw new Error("EmailJS "+response.status+": "+responseText);
+    }
 
     rewardCount=nextRewardNumber;
     points=0;
@@ -254,7 +268,6 @@ async function claimReward(){
       '<div style="margin-top:8px">Jetzt geht es wieder bei <b>0 / 100 Punkten</b> los!</div>' +
       '</div>';
 
-    alert("🎉 Gutschein Nr. "+nextRewardNumber+" wurde erfolgreich an Papa gemeldet!");
   }catch(error){
     console.error("EmailJS Fehler:",error);
     if(rewardButton){
@@ -264,18 +277,18 @@ async function claimReward(){
     $("feedback").innerHTML=
       '<div class="reward">' +
       '<h3>⚠️ E-Mail konnte nicht gesendet werden</h3>' +
-      '<div>Deine 100 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div>' +
+      '<div>Die 100 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div>' +
       '</div>';
   }finally{
     sendingReward=false;
     updateStats();
   }
 }
+
 const testMode = new URLSearchParams(window.location.search).get("test") === "1";
 if(testMode){
   $("testPanel").classList.remove("hidden");
 }
-
 function setTestPoints(){
   points=95;
   saveProgress();
