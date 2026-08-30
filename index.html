@@ -102,7 +102,7 @@
     <div id="nextArea" class="hidden">
       <button class="primary" onclick="nextQuestion()">➡️ Nächste Frage</button>
     </div>
-    <div class="actions" style="margin-top:20px">
+    <div class="actions" id="secondaryActions" style="margin-top:20px">
       <button onclick="skipQuestion()">🔄 Neue Frage</button>
       <button onclick="switchDirection()">↔️ Richtung wechseln</button>
     </div>
@@ -452,9 +452,11 @@ function checkAnswer(){
 
   if(points>=REWARD_TARGET){
     $("nextArea").classList.add("hidden");
+    $("secondaryActions").classList.add("hidden");
     $("feedback").innerHTML += '<div class="reward"><h3>🎟️ SPIELZEITGUTSCHEIN FREIGESPIELT!</h3><div>Tom, du hast 200 Punkte erreicht! 🎮</div><button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button></div>';
   }else{
     $("nextArea").classList.remove("hidden");
+    $("secondaryActions").classList.remove("hidden");
   }
 }
 function skipQuestion(){
@@ -479,7 +481,7 @@ function continueAfterReward(){
   $("rewardContinueArea").innerHTML="";
   $("feedback").innerHTML="";
   $("nextArea").classList.add("hidden");
-  document.querySelector("#game .actions:last-of-type").classList.remove("hidden");
+  $("secondaryActions").classList.remove("hidden");
   $("start").classList.add("hidden");
   $("pause").classList.add("hidden");
   $("game").classList.remove("hidden");
