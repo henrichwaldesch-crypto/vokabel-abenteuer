@@ -334,6 +334,8 @@ async function claimReward(){
 
     $("rewardContinueArea").innerHTML=
       '<button class="primary" onclick="continueAfterReward()">➡️ Weiterlernen</button>';
+    $("nextArea").classList.add("hidden");
+    document.querySelector("#game .actions:last-of-type").classList.add("hidden");
     $("rewardContinueArea").classList.remove("hidden");
 
   }catch(error){
@@ -446,10 +448,13 @@ function checkAnswer(){
   }
   learning[index]=l;
   updateStats();
-  $("answer").disabled=true; $("checkBtn").disabled=true; $("nextArea").classList.remove("hidden");
+  $("answer").disabled=true; $("checkBtn").disabled=true;
 
   if(points>=REWARD_TARGET){
+    $("nextArea").classList.add("hidden");
     $("feedback").innerHTML += '<div class="reward"><h3>🎟️ SPIELZEITGUTSCHEIN FREIGESPIELT!</h3><div>Tom, du hast 200 Punkte erreicht! 🎮</div><button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button></div>';
+  }else{
+    $("nextArea").classList.remove("hidden");
   }
 }
 function skipQuestion(){
@@ -473,6 +478,8 @@ function continueAfterReward(){
   $("rewardContinueArea").classList.add("hidden");
   $("rewardContinueArea").innerHTML="";
   $("feedback").innerHTML="";
+  $("nextArea").classList.add("hidden");
+  document.querySelector("#game .actions:last-of-type").classList.remove("hidden");
   $("start").classList.add("hidden");
   $("pause").classList.add("hidden");
   $("game").classList.remove("hidden");
