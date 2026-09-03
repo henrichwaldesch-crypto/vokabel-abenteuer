@@ -57,6 +57,9 @@
   .info-button { grid-column:3; justify-self:center; width:30px; height:30px; padding:0; border-radius:50%; font-size:18px; font-weight:800; line-height:30px; background:#dfe8ff; color:#24457f; }
   .learning-info { margin-top:14px; padding:15px; border-radius:14px; background:#f4f6fb; color:#4a5568; text-align:left; font-size:16px; line-height:1.5; }
   .learning-info p { margin:6px 0; }
+  .pin-box { max-width:420px; margin:18px auto; }
+  .pin-box input { text-align:center; letter-spacing:.35em; font-size:28px; }
+  .redeem-count { font-size:42px; font-weight:800; margin:12px 0 4px; color:#24457f; }
   .add-box { border:2px solid #bfd0ff; background:#f5f8ff; border-radius:20px; padding:18px; margin:18px 0; text-align:left; }
   .add-box h3 { text-align:center; margin:0 0 12px; font-size:24px; }
   .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
@@ -88,7 +91,9 @@
       <button onclick="showStart()">🏠 Startseite</button>
       <div class="stat">⭐ <span id="points">0</span></div>
       <button class="stat" onclick="startDifficultTraining()">🎯 <span id="difficultCount">0</span> schwierig</button>
-      <div class="stat">🏆 <span id="rewards">0</span> Gutscheine</div><div class="stat">🎁 <span id="bonusNext">10</span> bis Überraschung</div>
+      <div class="stat">🏆 <span id="rewards">0</span> Gutscheine gesamt</div>
+      <button class="stat" onclick="showRedeemRewards()">🎟️ <span id="pendingRewardsTop">0</span> einzulösen</button>
+      <div class="stat">🎁 <span id="bonusNext">10</span> bis Überraschung</div>
       <div class="stat">📝 Heute schon <span id="dailyCount">0</span> Vokabeln geübt</div>
     </div>
   </div>
@@ -160,12 +165,37 @@
       <div class="actions"><button class="primary" onclick="saveRewardText()">💾 Gutscheininhalt speichern</button></div>
       <div id="rewardSettingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
     </div>
+    <div class="add-box">
+      <h3>🔐 Eltern-PIN</h3>
+      <p class="small" style="text-align:center;font-size:17px">Mit dem 4-stelligen Eltern-PIN können gesammelte Gutscheine eingelöst werden. Das Lernen wird beim Erreichen eines Gutscheins nicht unterbrochen.</p>
+      <div class="form-grid">
+        <label class="wide">4-stelliger PIN<input id="parentPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></label>
+      </div>
+      <div class="actions"><button class="primary" onclick="saveParentPin()">💾 Eltern-PIN speichern</button></div>
+      <div id="pinSettingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
+    </div>
     <div class="add-box" style="border-color:#f3b7b3;background:#fff7f6">
       <h3>⚠️ Alles zurücksetzen</h3>
       <p class="small" style="text-align:center;font-size:17px">Löscht alle selbst erstellten Units und Vokabeln sowie Punkte, Gutscheine und sämtliche Lernstände. Danach beginnt die App wieder mit Tom und Unit 1.</p>
       <div class="actions"><button class="danger" onclick="resetEverything()">🗑️ Alles auf Start zurücksetzen</button></div>
     </div>
     <div class="actions"><button onclick="showStart()">← Zurück zur Startseite</button></div>
+  </div>
+
+  <div id="redeemRewards" class="card hidden">
+    <div style="font-size:56px">🎟️</div>
+    <h2>Gutscheine einlösen</h2>
+    <div class="redeem-count"><span id="pendingRewardsRedeem">0</span></div>
+    <div id="pendingRewardsLabel" class="small" style="font-size:19px">Gutscheine warten auf die Einlösung.</div>
+    <div class="pin-box">
+      <label style="font-weight:700">Eltern-PIN</label>
+      <input id="redeemPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')redeemAllRewards()">
+    </div>
+    <div id="redeemStatus" class="save-note" style="text-align:center;margin:10px 0"></div>
+    <div class="actions">
+      <button id="redeemAllBtn" class="primary" onclick="redeemAllRewards()">🎟️ Gutscheine einlösen</button>
+      <button onclick="showStart()">← Zurück zur Startseite</button>
+    </div>
   </div>
 
   <div id="learnMenu" class="card hidden">
@@ -349,25 +379,10 @@ function incrementDailyPractice(){
 }
 const V20_MIGRATION_KEY="tom_v20_last_state_restored";
 const needsV20Migration=localStorage.getItem(V20_MIGRATION_KEY)!=="1";
-const EMAILJS_SERVICE_ID = "service_00ov29z";
-const EMAILJS_TEMPLATE_ID = "template_cpcoofd";
-const EMAILJS_PUBLIC_KEY = "aWi9vtGK8vDXJl7y7";
-
-let emailJsReady = false;
-function initEmailJS(){
-  try{
-    if(window.emailjs && typeof window.emailjs.init === "function"){
-      window.emailjs.init({publicKey: EMAILJS_PUBLIC_KEY});
-      emailJsReady = true;
-      return true;
-    }
-  }catch(e){
-    console.error("EmailJS Init-Fehler:", e);
-  }
-  emailJsReady = false;
-  return false;
-}
-
+const PENDING_REWARDS_KEY="tom_pending_rewards_v1";
+const PENDING_REWARDS_MIGRATION_KEY="tom_pending_rewards_migrated_v1";
+const PARENT_PIN_KEY="tom_parent_pin_v1";
+let parentPin=(localStorage.getItem(PARENT_PIN_KEY)||"").trim();
 const APP_VERSION="v12.7-unit-selection-start";
 if(localStorage.getItem("tom_app_version")!==APP_VERSION){
   localStorage.removeItem("tom_points");
@@ -384,6 +399,14 @@ let streak=Number.isFinite(storedStreak) && storedStreak>=0 ? Math.floor(storedS
 let storedRewardCount=Number(localStorage.getItem("tom_rewards"));
 let rewardCount=Number.isFinite(storedRewardCount) && storedRewardCount>=0 ? Math.floor(storedRewardCount) : 0;
 if(needsV20Migration)rewardCount=Math.max(2,rewardCount);
+let pendingRewards=Number(localStorage.getItem(PENDING_REWARDS_KEY));
+if(!Number.isFinite(pendingRewards) || pendingRewards<0) pendingRewards=0;
+pendingRewards=Math.floor(pendingRewards);
+if(localStorage.getItem(PENDING_REWARDS_MIGRATION_KEY)!=="1"){
+  pendingRewards=Math.max(pendingRewards,rewardCount);
+  localStorage.setItem(PENDING_REWARDS_KEY,String(pendingRewards));
+  localStorage.setItem(PENDING_REWARDS_MIGRATION_KEY,"1");
+}
 let bonusCount=Number(localStorage.getItem("tom_bonus_count")||0);
 if(rewardCount===0) localStorage.setItem("tom_rewards","0");
 let sendingReward=false;
@@ -445,6 +468,7 @@ function saveProgress(){
   localStorage.setItem("tom_points",points);
   localStorage.setItem("tom_streak",streak);
   localStorage.setItem("tom_rewards",rewardCount);
+  localStorage.setItem(PENDING_REWARDS_KEY,pendingRewards);
   localStorage.setItem("tom_bonus_count",bonusCount);
   localStorage.setItem("tom_learning",JSON.stringify(learning));
   localStorage.setItem(DAILY_STORAGE_KEY,JSON.stringify(dailyPractice));
@@ -456,7 +480,7 @@ function exportGameState(){
     format:"toms-vokabel-abenteuer-backup",
     formatVersion:1,
     exportedAt:new Date().toISOString(),
-    state:{points,streak,rewardCount,bonusCount,learning,words,units,playerName,rewardText,dailyPractice}
+    state:{points,streak,rewardCount,pendingRewards,bonusCount,learning,words,units,playerName,rewardText,dailyPractice}
   };
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob);
@@ -495,6 +519,7 @@ function importGameState(event){
       points=Math.max(0,Math.min(REWARD_TARGET,Math.floor(Number(state.points)||0)));
       streak=Math.max(0,Math.floor(Number(state.streak)||0));
       rewardCount=Math.max(0,Math.floor(Number(state.rewardCount)||0));
+      pendingRewards=Math.max(0,Math.floor(Number(state.pendingRewards ?? state.rewardCount)||0));
       bonusCount=Math.max(0,Math.floor(Number(state.bonusCount)||0));
       words=state.words.map((word,i)=>({
         de:word.de.trim(),
@@ -543,6 +568,7 @@ function updateStats(){
   $("points").textContent=points;
   $("difficultCount").textContent=getDifficultIndices().length;
   $("rewards").textContent=rewardCount;
+  $("pendingRewardsTop").textContent=pendingRewards;
   $("bonusNext").textContent=10-(rewardCount%10);
   $("dailyCount").textContent=dailyPractice.count;
   updateRewards();
@@ -570,129 +596,25 @@ function toggleLearningInfo(){
   $("learningInfo").classList.toggle("hidden");
 }
 function renderRewards(){
-  const ready=points>=REWARD_TARGET;
   const untilBonus=10-(rewardCount%10);
   $("rewardBox").innerHTML=`<div class="reward">
     <div><strong>200 Punkte = ${escapeHtml(rewardText)}</strong></div>
-    <div class="small" style="margin-top:6px">🏆 ${untilBonus===10?"Noch 10 Gutscheine":untilBonus+" Gutscheine"} bis zur nächsten Überraschung 🎁</div>
-    ${ready?'<button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button>':""}
+    <div class="small" style="margin-top:6px">🎟️ <b>${pendingRewards}</b> ${pendingRewards===1?"Gutschein wartet":"Gutscheine warten"} auf die Einlösung.</div>
+    <div class="small" style="margin-top:6px">🏆 Insgesamt verdient: ${rewardCount} · 🎁 ${untilBonus===10?"Noch 10 Gutscheine":untilBonus+" Gutscheine"} bis zur nächsten Überraschung</div>
+    <button onclick="showRedeemRewards()">🎟️ Gutscheine einlösen</button>
   </div>`;
 }
 
-async function claimReward(){
-  if(points<REWARD_TARGET || sendingReward)return;
-
-  sendingReward=true;
-  const nextRewardNumber=rewardCount+1;
-  const rewardButton=document.querySelector("#rewardBox button");
-  const diag=document.getElementById("mailDiagnostic");
-
-  if(rewardButton){
-    rewardButton.disabled=true;
-    rewardButton.textContent="📧 Gutschein wird gemeldet …";
-  }
-
-  const params={
-    gutscheinnummer:String(nextRewardNumber),
-    gutscheine_gesamt:String(nextRewardNumber),
-    gutschein_inhalt:rewardText,
-    spielername:playerName
-  };
-
-  try{
-    let sent=false;
-
-    if(window.emailjs && typeof window.emailjs.send==="function"){
-      try{
-        await window.emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,params);
-        sent=true;
-      }catch(e){
-        console.warn("EmailJS SDK-Versand fehlgeschlagen:",e);
-      }
-    }
-
-    if(!sent){
-      const response=await fetch("https://api.emailjs.com/api/v1.0/email/send",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          service_id:EMAILJS_SERVICE_ID,
-          template_id:EMAILJS_TEMPLATE_ID,
-          user_id:EMAILJS_PUBLIC_KEY,
-          template_params:params
-        })
-      });
-      const text=await response.text();
-      if(!response.ok) throw new Error("HTTP "+response.status+" – "+text);
-      sent=true;
-    }
-
-    if(!sent) throw new Error("Kein EmailJS-Versandweg verfügbar.");
-
-    rewardCount=nextRewardNumber;
-    points=0;
-    streak=0;
-    done=0;
-    answered=false;
-
-    const isMilestone=(rewardCount%10===0);
-    if(isMilestone) bonusCount++;
-
-    saveProgress();
-    updateStats();
-
-    if(diag){
-      diag.style.display="block";
-      diag.innerHTML="<b style='color:#176b3b'>✅ Gutschein erfolgreich gemeldet.</b>";
-    }
-
-    if(isMilestone){
-      $("feedback").innerHTML=
-        '<div class="reward">'+
-        '<h3>🎉 WOW, '+escapeHtml(playerName)+'!</h3>'+
-        '<div>Du hast deinen <b>'+rewardCount+'. Gutschein</b> geschafft! 🏆</div>'+
-        '<div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div>'+
-        '<div style="margin-top:10px;font-size:22px">🎁 <b>Eine Überraschung wartet auf dich!</b></div>'+
-        '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>'+
-        '</div>';
-    }else{
-      $("feedback").innerHTML=
-        '<div class="reward">'+
-        '<h3>🎉 Super, '+escapeHtml(playerName)+'!</h3>'+
-        '<div>Dein <b>'+rewardCount+'. Gutschein</b> wurde verdient. 🎟️</div>'+
-        '<div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div>'+
-        '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>'+
-        '</div>';
-    }
-
-    $("rewardContinueArea").innerHTML=
-      '<button class="primary" onclick="continueAfterReward()">➡️ Weiterlernen</button>';
-    // Nach dem Einlösen bleibt ausschließlich „Weiterlernen“ sichtbar.
-    $("nextArea").classList.add("hidden");
-    $("secondaryActions").classList.add("hidden");
-    $("rewardContinueArea").classList.remove("hidden");
-
-  }catch(error){
-    console.error("EmailJS Fehler:",error);
-
-    if(rewardButton){
-      rewardButton.disabled=false;
-      rewardButton.textContent="🎉 Gutschein einlösen";
-    }
-
-    if(diag){
-      diag.style.display="block";
-      diag.innerHTML="<b style='color:#a52323'>❌ E-Mail konnte nicht gesendet werden</b><br>"+
-        String(error && error.message ? error.message : error).replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
-
-    $("feedback").innerHTML=
-      '<div class="reward"><h3>⚠️ E-Mail konnte nicht gesendet werden</h3>'+
-      '<div>Die 200 Punkte bleiben erhalten. Bitte versuche es noch einmal.</div></div>';
-  }finally{
-    sendingReward=false;
-    updateRewards();
-  }
+function collectRewardIfReady(){
+  if(points<REWARD_TARGET)return null;
+  rewardCount++;
+  pendingRewards++;
+  points=0;
+  streak=0;
+  const isMilestone=rewardCount%10===0;
+  if(isMilestone)bonusCount++;
+  saveProgress();
+  return {number:rewardCount,isMilestone};
 }
 
 const testMode = new URLSearchParams(window.location.search).get("test") === "1";
@@ -707,7 +629,7 @@ function setTestPoints(){
 }
 
 function showStart(){
-  ["game","pause","vocabularyManager","learnMenu","unitManager","settings"].forEach(id=>$(id).classList.add("hidden"));
+  ["game","pause","vocabularyManager","learnMenu","unitManager","settings","redeemRewards"].forEach(id=>$(id).classList.add("hidden"));
   $("start").classList.remove("hidden");
   updateRewards();
 }
@@ -716,15 +638,18 @@ function escapeHtml(value){
   return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));
 }
 function hideMainScreens(){
-  ["start","game","pause","vocabularyManager","learnMenu","unitManager","settings"].forEach(id=>$(id).classList.add("hidden"));
+  ["start","game","pause","vocabularyManager","learnMenu","unitManager","settings","redeemRewards"].forEach(id=>$(id).classList.add("hidden"));
 }
 function showSettings(){
   hideMainScreens();
   $("settings").classList.remove("hidden");
   $("playerNameInput").value=playerName;
+  $("rewardTextInput").value="";
   $("rewardTextInput").value=rewardText;
+  $("parentPinInput").value="";
   $("settingsStatus").textContent="";
   $("rewardSettingsStatus").textContent="";
+  $("pinSettingsStatus").textContent=parentPin?"✅ Ein Eltern-PIN ist eingerichtet.":"Noch kein Eltern-PIN eingerichtet.";
   $("playerNameInput").focus();
 }
 function savePlayerName(){
@@ -743,12 +668,59 @@ function saveRewardText(){
   updateRewards();
   $("rewardSettingsStatus").textContent="✅ Gutscheininhalt gespeichert.";
 }
+function saveParentPin(){
+  const pin=$("parentPinInput").value.trim();
+  if(!/^\d{4}$/.test(pin)){
+    $("pinSettingsStatus").textContent="⚠️ Bitte genau 4 Ziffern eingeben.";
+    return;
+  }
+  parentPin=pin;
+  localStorage.setItem(PARENT_PIN_KEY,parentPin);
+  $("parentPinInput").value="";
+  $("pinSettingsStatus").textContent="✅ Eltern-PIN gespeichert.";
+}
+function showRedeemRewards(){
+  hideMainScreens();
+  $("redeemRewards").classList.remove("hidden");
+  $("pendingRewardsRedeem").textContent=pendingRewards;
+  $("pendingRewardsLabel").textContent=pendingRewards===1?"1 Gutschein wartet auf die Einlösung.":pendingRewards+" Gutscheine warten auf die Einlösung.";
+  $("redeemPinInput").value="";
+  $("redeemStatus").textContent=parentPin?"":"⚠️ Bitte zuerst in den Einstellungen einen Eltern-PIN festlegen.";
+  $("redeemAllBtn").disabled=!parentPin || pendingRewards===0;
+  if(parentPin && pendingRewards>0)$("redeemPinInput").focus();
+}
+function redeemAllRewards(){
+  if(!parentPin){
+    $("redeemStatus").textContent="⚠️ Bitte zuerst einen Eltern-PIN in den Einstellungen festlegen.";
+    return;
+  }
+  if(pendingRewards<=0){
+    $("redeemStatus").textContent="Aktuell gibt es keine Gutscheine zum Einlösen.";
+    return;
+  }
+  if($("redeemPinInput").value.trim()!==parentPin){
+    $("redeemStatus").textContent="❌ Der Eltern-PIN ist nicht richtig.";
+    $("redeemPinInput").value="";
+    $("redeemPinInput").focus();
+    return;
+  }
+  const redeemed=pendingRewards;
+  pendingRewards=0;
+  saveProgress();
+  updateStats();
+  $("pendingRewardsRedeem").textContent="0";
+  $("pendingRewardsLabel").textContent="Alle gesammelten Gutscheine wurden eingelöst.";
+  $("redeemStatus").textContent="✅ "+redeemed+" "+(redeemed===1?"Gutschein wurde":"Gutscheine wurden")+" eingelöst.";
+  $("redeemAllBtn").disabled=true;
+  $("redeemPinInput").value="";
+}
+
 function resetEverything(){
   const first=confirm("Wirklich alles zurücksetzen? Alle eigenen Units, Vokabeln, Punkte, Gutscheine und Lernstände werden gelöscht.");
   if(!first)return;
   const second=confirm("Letzte Bestätigung: Der aktuelle Stand kann danach nur aus einer zuvor gespeicherten Sicherungsdatei wiederhergestellt werden.");
   if(!second)return;
-  ["tom_points","tom_streak","tom_rewards","tom_bonus_count","tom_learning","tom_app_version",WORDS_STORAGE_KEY,UNITS_STORAGE_KEY,PLAYER_NAME_KEY,REWARD_TEXT_KEY,DAILY_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
+  ["tom_points","tom_streak","tom_rewards",PENDING_REWARDS_KEY,PENDING_REWARDS_MIGRATION_KEY,PARENT_PIN_KEY,"tom_bonus_count","tom_learning","tom_app_version",WORDS_STORAGE_KEY,UNITS_STORAGE_KEY,PLAYER_NAME_KEY,REWARD_TEXT_KEY,DAILY_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
   location.reload();
 }
 function showLearnMenu(){
@@ -1067,19 +1039,15 @@ function checkAnswer(){
       '<button onclick="speakWord()" style="margin-top:8px">🔊 Noch einmal anhören</button>';
   }
   learning[index]=l;
+  const collected=collectRewardIfReady();
   updateStats();
   $("answer").disabled=true; $("checkBtn").disabled=true;
 
-  if(points>=REWARD_TARGET){
-    // Sobald ein Gutschein freigespielt ist, gibt es nur noch die Gutschein-Aktion.
-    $("nextArea").classList.add("hidden");
-    $("secondaryActions").classList.add("hidden");
-    $("rewardContinueArea").classList.add("hidden");
-    $("feedback").innerHTML += '<div class="reward"><h3>🎟️ GUTSCHEIN FREIGESPIELT!</h3><div>'+escapeHtml(playerName)+', du hast 200 Punkte erreicht!</div><div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div><button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button></div>';
-  }else{
-    $("nextArea").classList.remove("hidden");
-    $("secondaryActions").classList.remove("hidden");
+  if(collected){
+    $("feedback").innerHTML += '<div class="reward"><h3>🎟️ GUTSCHEIN GESCHAFFT!</h3><div>'+escapeHtml(playerName)+', dein <b>'+collected.number+'. Gutschein</b> wurde automatisch gesammelt.</div><div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div><div style="margin-top:8px">Du kannst direkt weiterlernen. Der Gutschein kann später mit dem Eltern-PIN eingelöst werden. 🔐</div>'+(collected.isMilestone?'<div style="margin-top:12px;font-size:22px">🎁 <b>Und das war Gutschein Nr. '+collected.number+' – eine Überraschung wartet auf dich!</b></div>':'')+'</div>';
   }
+  $("nextArea").classList.remove("hidden");
+  $("secondaryActions").classList.remove("hidden");
 }
 function skipQuestion(){
   // "Neue Frage" = Antwort nicht gewusst.
@@ -1124,10 +1092,6 @@ function speakWord(){
     speechSynthesis.speak(u);
   }
 }
-document.addEventListener("click",e=>{
-  const btn=e.target.closest(".claimRewardBtn");
-  if(btn) claimReward();
-});
 $("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
 updatePlayerText();
 updateStats();
