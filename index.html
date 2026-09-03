@@ -188,12 +188,14 @@
     <div class="redeem-count"><span id="pendingRewardsRedeem">0</span></div>
     <div id="pendingRewardsLabel" class="small" style="font-size:19px">Gutscheine warten auf die Einlösung.</div>
     <div class="pin-box">
+      <label style="font-weight:700">Wie viele Gutscheine möchtest du einlösen?</label>
+      <select id="redeemCountSelect" style="width:100%;padding:14px;border:2px solid #dce2ef;border-radius:12px;font-size:20px;background:white;color:#182033;margin:8px 0 16px"></select>
       <label style="font-weight:700">Eltern-PIN</label>
-      <input id="redeemPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')redeemAllRewards()">
+      <input id="redeemPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')redeemSelectedRewards()">
     </div>
     <div id="redeemStatus" class="save-note" style="text-align:center;margin:10px 0"></div>
     <div class="actions">
-      <button id="redeemAllBtn" class="primary" onclick="redeemAllRewards()">🎟️ Gutscheine einlösen</button>
+      <button id="redeemAllBtn" class="primary" onclick="redeemSelectedRewards()">🎟️ Ausgewählte Gutscheine einlösen</button>
       <button onclick="showStart()">← Zurück zur Startseite</button>
     </div>
   </div>
@@ -679,17 +681,35 @@ function saveParentPin(){
   $("parentPinInput").value="";
   $("pinSettingsStatus").textContent="✅ Eltern-PIN gespeichert.";
 }
+function buildRedeemCountOptions(){
+  const select=$("redeemCountSelect");
+  if(!select)return;
+  if(pendingRewards<=0){
+    select.innerHTML='<option value="0">Keine Gutscheine verfügbar</option>';
+    select.disabled=true;
+    return;
+  }
+  select.disabled=false;
+  select.innerHTML=Array.from({length:pendingRewards},(_,i)=>{
+    const count=i+1;
+    const label=count===pendingRewards && pendingRewards>1
+      ? count+" Gutscheine – alle einlösen"
+      : count+" "+(count===1?"Gutschein":"Gutscheine");
+    return '<option value="'+count+'">'+label+'</option>';
+  }).join("");
+}
 function showRedeemRewards(){
   hideMainScreens();
   $("redeemRewards").classList.remove("hidden");
   $("pendingRewardsRedeem").textContent=pendingRewards;
   $("pendingRewardsLabel").textContent=pendingRewards===1?"1 Gutschein wartet auf die Einlösung.":pendingRewards+" Gutscheine warten auf die Einlösung.";
+  buildRedeemCountOptions();
   $("redeemPinInput").value="";
   $("redeemStatus").textContent=parentPin?"":"⚠️ Bitte zuerst in den Einstellungen einen Eltern-PIN festlegen.";
   $("redeemAllBtn").disabled=!parentPin || pendingRewards===0;
   if(parentPin && pendingRewards>0)$("redeemPinInput").focus();
 }
-function redeemAllRewards(){
+function redeemSelectedRewards(){
   if(!parentPin){
     $("redeemStatus").textContent="⚠️ Bitte zuerst einen Eltern-PIN in den Einstellungen festlegen.";
     return;
@@ -698,20 +718,30 @@ function redeemAllRewards(){
     $("redeemStatus").textContent="Aktuell gibt es keine Gutscheine zum Einlösen.";
     return;
   }
+  const requested=Math.floor(Number($("redeemCountSelect").value)||0);
+  if(requested<1 || requested>pendingRewards){
+    $("redeemStatus").textContent="⚠️ Bitte auswählen, wie viele Gutscheine eingelöst werden sollen.";
+    return;
+  }
   if($("redeemPinInput").value.trim()!==parentPin){
     $("redeemStatus").textContent="❌ Der Eltern-PIN ist nicht richtig.";
     $("redeemPinInput").value="";
     $("redeemPinInput").focus();
     return;
   }
-  const redeemed=pendingRewards;
-  pendingRewards=0;
+  const redeemed=requested;
+  pendingRewards-=redeemed;
   saveProgress();
   updateStats();
-  $("pendingRewardsRedeem").textContent="0";
-  $("pendingRewardsLabel").textContent="Alle gesammelten Gutscheine wurden eingelöst.";
-  $("redeemStatus").textContent="✅ "+redeemed+" "+(redeemed===1?"Gutschein wurde":"Gutscheine wurden")+" eingelöst.";
-  $("redeemAllBtn").disabled=true;
+  $("pendingRewardsRedeem").textContent=pendingRewards;
+  $("pendingRewardsLabel").textContent=pendingRewards===0
+    ? "Alle gesammelten Gutscheine wurden eingelöst."
+    : pendingRewards===1
+      ? "1 Gutschein wartet noch auf die Einlösung."
+      : pendingRewards+" Gutscheine warten noch auf die Einlösung.";
+  $("redeemStatus").textContent="✅ "+redeemed+" "+(redeemed===1?"Gutschein wurde":"Gutscheine wurden")+" eingelöst."+(pendingRewards?" Noch offen: "+pendingRewards+".":"");
+  buildRedeemCountOptions();
+  $("redeemAllBtn").disabled=pendingRewards===0;
   $("redeemPinInput").value="";
 }
 
