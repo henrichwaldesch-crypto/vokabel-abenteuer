@@ -20,9 +20,11 @@
   button { border:0; border-radius:15px; padding:14px 22px; font-size:20px;
     background:#e9eefc; color:#24457f; cursor:pointer; }
   button.primary { background:#3164e8; color:white; }
+  button.danger { background:#b42318; color:white; }
   button:disabled { opacity:.5; cursor:not-allowed; }
   button:active { transform:scale(.98); }
   .stat { background:#eef2ff; padding:12px 18px; border-radius:22px; font-size:20px; }
+  button.stat { color:#24457f; }
   .question { font-size:44px; font-weight:700; margin:25px 0 30px; }
   .direction,.small { color:#718096; }
   input { width:100%; padding:18px; border:3px solid #dce2ef; border-radius:15px;
@@ -39,24 +41,53 @@
   .reward h3 { margin:0 0 8px; font-size:25px; }
   .reward button { margin-top:10px; background:#f3c928; color:#4d3b00; }
   .chapter { font-size:16px; color:#718096; margin-top:8px; }
+  .vocab-toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:18px 0; }
+  .vocab-toolbar input { flex:1; min-width:240px; font-size:19px; padding:14px; }
+  .vocab-list { display:grid; gap:12px; text-align:left; }
+  .vocab-row { border:2px solid #e7ebf4; border-radius:18px; padding:16px; background:#fbfcff; }
+  .vocab-summary { display:grid; grid-template-columns:1fr 1fr auto; gap:14px; align-items:center; }
+  .vocab-label { display:block; color:#718096; font-size:14px; margin-bottom:4px; }
+  .vocab-value { font-size:19px; font-weight:650; overflow-wrap:anywhere; }
+  .vocab-editor { display:grid; gap:12px; margin-top:14px; padding-top:14px; border-top:1px solid #dce2ef; }
+  .vocab-editor label { color:#4a5568; font-size:16px; font-weight:650; }
+  .vocab-editor input { margin-top:5px; font-size:18px; padding:13px; }
+  .save-note { color:#176b3b; font-weight:700; min-height:24px; }
+  .info-button { width:30px; height:30px; padding:0; margin-left:5px; border-radius:50%; font-size:18px; font-weight:800; line-height:30px; vertical-align:2px; background:#dfe8ff; color:#24457f; }
+  .learning-info { margin-top:14px; padding:15px; border-radius:14px; background:#f4f6fb; color:#4a5568; text-align:left; font-size:16px; line-height:1.5; }
+  .learning-info p { margin:6px 0; }
+  .add-box { border:2px solid #bfd0ff; background:#f5f8ff; border-radius:20px; padding:18px; margin:18px 0; text-align:left; }
+  .add-box h3 { text-align:center; margin:0 0 12px; font-size:24px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-grid .wide { grid-column:1/-1; }
+  .form-grid label { color:#4a5568; font-size:15px; font-weight:650; }
+  .form-grid input { margin-top:5px; font-size:18px; padding:13px; }
+  .ocr-preview { display:block; max-width:100%; max-height:360px; margin:14px auto; border-radius:14px; box-shadow:0 3px 12px rgba(20,30,60,.12); }
+  .ocr-progress { height:14px; background:#e7ebf4; border-radius:10px; overflow:hidden; margin:12px 0; }
+  .ocr-progress > div { width:0; height:100%; background:#3164e8; transition:width .25s; }
+  .ocr-rows { display:grid; gap:10px; margin-top:14px; }
+  .ocr-row { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:center; }
+  .ocr-row input { font-size:17px; padding:11px; }
+  textarea { width:100%; min-height:120px; padding:13px; border:2px solid #dce2ef; border-radius:12px; font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
   @media (max-width:600px) {
     h1{font-size:32px}.subtitle{font-size:18px}.question{font-size:34px}.card{padding:20px}
+    .vocab-summary{grid-template-columns:1fr}.vocab-summary button{width:100%}
+    .form-grid,.ocr-row{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.ocr-row button{width:100%}
   }
 </style>
-
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>📚 Toms Vokabel-Abenteuer</h1>
-  <div class="subtitle">Hallo Tom! Sammle Punkte, lerne Vokabeln und verdiene dir Belohnungen. 🎮</div>
+  <h1 id="appHeading">📚 Toms Vokabel-Abenteuer</h1>
+  <div class="subtitle">Hallo <span id="greetingName">Tom</span>! Sammle Punkte, lerne Vokabeln und verdiene dir Belohnungen. 🎮</div>
 
   <div class="card">
     <div class="topbar">
-      <button onclick="showStart()">🏠 Start</button>
+      <button onclick="showStart()">🏠 Startseite</button>
       <div class="stat">⭐ <span id="points">0</span></div>
-      <div class="stat">🔥 <span id="streak">0</span></div>
+      <button class="stat" onclick="startDifficultTraining()">🎯 <span id="difficultCount">0</span> schwierig</button>
       <div class="stat">🏆 <span id="rewards">0</span> Gutscheine</div><div class="stat">🎁 <span id="bonusNext">10</span> bis Überraschung</div>
-      <div class="stat">📝 <span id="count">0</span>/20</div>
+      <div class="stat">📝 Heute schon <span id="dailyCount">0</span> Vokabeln geübt</div>
     </div>
   </div>
   <div id="testPanel" class="card hidden" style="border:2px dashed #f0b429">
@@ -66,34 +97,93 @@
   </div>
 
   <div id="start" class="card">
-    <div style="font-size:64px">🎮</div>
-    <h2>Bereit, Tom?</h2>
+    <h2>Bereit, <span id="readyName">Tom</span>?</h2>
     <p style="font-size:21px">Übe deine Vokabeln, sammle Punkte und arbeite dich zur nächsten Belohnung vor!</p>
     <div>
-      <strong>🎁 Nächste Belohnung: 100 Punkte</strong>
+      <strong>🎁 Nächste Belohnung: 200 Punkte</strong>
       <div class="progress"><div id="rewardProgress"></div></div>
       <div id="rewardText" class="small"></div>
     </div>
-    <div class="reward" style="text-align:left">
-      <h3 style="text-align:center">📚 Was möchtest du lernen?</h3>
-      <button class="primary" style="width:100%;margin-top:6px" onclick="selectUnit('unit1')">📘 Unit 1 – School life</button>
-      <div class="small" style="text-align:center;margin:8px 0 2px">Start: Unit 1 inkl. „Check in“</div>
-      <button style="width:100%;margin-top:10px" onclick="selectUnit('all')">📚 Alle bisher erfassten Vokabeln</button>
-      <button disabled style="width:100%;margin-top:10px;opacity:.45">📘 Unit 2 – folgt später</button>
-      <button disabled style="width:100%;margin-top:10px;opacity:.45">📘 Unit 3 – folgt später</button>
-      <button disabled style="width:100%;margin-top:10px;opacity:.45">🔄 Wiederholen – wird später ergänzt</button>
-      <div class="small" style="text-align:center;margin-top:12px">Station 1 kommt später dazu.</div>
-    </div>
     <div class="reward">
-      <h3>🏆 Deine Gutscheine</h3>
-      <div style="font-size:28px"><strong><span id="rewardCountLarge">0</span></strong></div>
-      <div class="small">Bereits verdiente Spielzeitgutscheine</div>
+      <h3>📚 Vokabeltrainer</h3>
+      <div class="actions">
+        <button class="primary" onclick="showLearnMenu()">▶️ Lernen</button>
+        <button onclick="showUnitManager()">✏️ Vokabeln und Units verwalten</button>
+      </div>
     </div>
     <div id="rewardBox"></div><div id="mailDiagnostic" class="small" style="display:none;margin-top:12px;padding:12px;background:#f4f6fb;border-radius:12px;text-align:left;word-break:break-word"></div>
     <div class="reward">
-      <h3>🧠 Toms Lernstand</h3>
+      <h3>🧠 <span id="learningName">Toms</span> Lernstand <button class="info-button" onclick="toggleLearningInfo()" aria-label="Erklärung zum Lernstand" title="Erklärung anzeigen">i</button></h3>
       <div id="learningStats" class="small"></div>
+      <div id="learningInfo" class="learning-info hidden">
+        <p><b>🆕 Neu:</b> Noch nicht richtig beantwortet oder wieder auf der ersten Lernstufe.</p>
+        <p><b>🔄 Üben:</b> Bereits richtig beantwortet, aber noch nicht sicher.</p>
+        <p><b>⭐ Sicher:</b> Mindestens Lernstufe 3 erreicht.</p>
+        <p>Eine richtige Antwort erhöht die Lernstufe, eine falsche Antwort oder „Neue Frage“ senkt sie.</p>
+        <p><b>🎯 Schwierig</b> wird getrennt gezählt: Nach zwei Fehlern kommt eine Vokabel ins Fehlertraining. Nach drei richtigen Antworten hintereinander verlässt sie es wieder und bringt den Lernbonus.</p>
+      </div>
     </div>
+    <div class="reward">
+      <h3>💾 Spielstand sichern</h3>
+      <div class="small" style="font-size:17px;margin-bottom:12px">Sichert Punkte, Gutscheine, Lernstand und korrigierte Vokabeln in einer Datei.</div>
+      <div class="actions">
+        <button class="primary" onclick="exportGameState()">💾 Spielstand sichern</button>
+        <button onclick="chooseGameStateFile()">📂 Spielstand laden</button>
+        <button onclick="showSettings()">⚙️ Einstellungen</button>
+      </div>
+      <input id="gameStateFile" class="hidden" type="file" accept=".json,application/json" onchange="importGameState(event)">
+      <div id="backupStatus" class="small" style="margin-top:12px;font-weight:700"></div>
+    </div>
+  </div>
+
+  <div id="settings" class="card hidden">
+    <div style="font-size:56px">⚙️</div>
+    <h2>Einstellungen</h2>
+    <div class="add-box">
+      <h3>👤 Spielername</h3>
+      <div class="form-grid">
+        <label class="wide">Name<input id="playerNameInput" maxlength="30" placeholder="z. B. Lia"></label>
+      </div>
+      <div class="actions"><button class="primary" onclick="savePlayerName()">💾 Namen speichern</button></div>
+      <div id="settingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
+    </div>
+    <div class="add-box">
+      <h3>🎟️ Inhalt des Gutscheins</h3>
+      <div class="form-grid">
+        <label class="wide">Belohnung<input id="rewardTextInput" maxlength="120" placeholder="z. B. 30 Minuten zusätzliche Spielzeit"></label>
+      </div>
+      <div class="actions"><button class="primary" onclick="saveRewardText()">💾 Gutscheininhalt speichern</button></div>
+      <div id="rewardSettingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
+    </div>
+    <div class="add-box" style="border-color:#f3b7b3;background:#fff7f6">
+      <h3>⚠️ Alles zurücksetzen</h3>
+      <p class="small" style="text-align:center;font-size:17px">Löscht alle selbst erstellten Units und Vokabeln sowie Punkte, Gutscheine und sämtliche Lernstände. Danach beginnt die App wieder mit Tom und Unit 1.</p>
+      <div class="actions"><button class="danger" onclick="resetEverything()">🗑️ Alles auf Start zurücksetzen</button></div>
+    </div>
+    <div class="actions"><button onclick="showStart()">← Zurück zur Startseite</button></div>
+  </div>
+
+  <div id="learnMenu" class="card hidden">
+    <div style="font-size:56px">📚</div>
+    <h2>Was möchtest du lernen?</h2>
+    <div id="learnUnitList" class="vocab-list"></div>
+    <div class="actions"><button onclick="showStart()">← Zurück zur Startseite</button></div>
+  </div>
+
+  <div id="unitManager" class="card hidden">
+    <div style="font-size:56px">🗂️</div>
+    <h2>Vokabeln und Units verwalten</h2>
+    <div class="add-box">
+      <h3>➕ Neue Unit erstellen</h3>
+      <div class="form-grid">
+        <label class="wide">Name der Unit<input id="newUnitName" placeholder="z. B. Unit 2 – At home"></label>
+      </div>
+      <div class="actions"><button class="primary" onclick="createUnit()">➕ Unit erstellen</button></div>
+      <div id="unitStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
+    </div>
+    <p class="small" style="font-size:17px">Wähle eine Unit aus, um Vokabeln hinzuzufügen, vom Foto zu übernehmen oder zu korrigieren.</p>
+    <div id="manageUnitList" class="vocab-list"></div>
+    <div class="actions"><button onclick="showStart()">← Zurück zur Startseite</button></div>
   </div>
 
   <div id="game" class="card hidden">
@@ -117,16 +207,61 @@
     </div>
   </div>
 
+  <div id="vocabularyManager" class="card hidden">
+    <div style="font-size:56px">✏️</div>
+    <h2 id="vocabularyManagerTitle">Vokabeln prüfen und korrigieren</h2>
+    <p class="small" style="font-size:18px">Änderungen werden auf diesem Gerät gespeichert und sofort im Trainer verwendet.</p>
+    <div class="add-box">
+      <h3>➕ Neue Vokabel eingeben</h3>
+      <div class="form-grid">
+        <label>Deutsch<input id="newVocabDe" placeholder="z. B. das Buch"></label>
+        <label>Englisch<input id="newVocabEn" placeholder="z. B. book"></label>
+        <label class="wide">Beispielsatz (optional)<input id="newVocabExample" placeholder="This is my book."></label>
+        <label class="wide">Unit / Kapitel<input id="newVocabChapter" value="Unit 1 – School life" readonly></label>
+      </div>
+      <div class="actions"><button class="primary" onclick="addVocabulary()">➕ Vokabel speichern</button></div>
+    </div>
+    <div class="add-box">
+      <h3>📷 Vokabeln vom Foto übernehmen</h3>
+      <p class="small" style="text-align:center">Foto aufnehmen oder auswählen. Anschließend alle erkannten Einträge prüfen und bei Bedarf korrigieren.</p>
+      <div class="actions">
+        <button onclick="chooseVocabularyPhoto()">📷 Foto auswählen</button>
+      </div>
+      <input id="vocabPhotoFile" class="hidden" type="file" accept="image/*" capture="environment" onchange="prepareVocabularyPhoto(event)">
+      <img id="ocrImagePreview" class="ocr-preview hidden" alt="Ausgewähltes Vokabelfoto">
+      <div id="ocrActionArea" class="hidden">
+        <div class="actions"><button id="ocrStartButton" class="primary" onclick="recognizeVocabularyPhoto()">🔎 Wörter erkennen</button></div>
+        <div id="ocrProgressWrap" class="hidden"><div class="ocr-progress"><div id="ocrProgressBar"></div></div></div>
+        <div id="ocrStatus" class="small" style="text-align:center;font-weight:700;margin-top:10px"></div>
+      </div>
+      <div id="ocrReview" class="hidden">
+        <label class="small" style="display:block;margin-top:14px">Erkannter Text – hier kannst du Trennungen notfalls direkt korrigieren:</label>
+        <textarea id="ocrRawText" oninput="buildOcrRowsFromText()"></textarea>
+        <div id="ocrRows" class="ocr-rows"></div>
+        <div class="actions">
+          <button onclick="addEmptyOcrRow()">➕ Leere Zeile</button>
+          <button class="primary" onclick="saveOcrVocabularyRows()">💾 Geprüfte Vokabeln speichern</button>
+        </div>
+      </div>
+    </div>
+    <div class="vocab-toolbar">
+      <input id="vocabSearch" type="search" placeholder="Deutsch oder Englisch suchen …" oninput="renderVocabularyList()">
+      <button onclick="showUnitManager()">← Zu den Units</button>
+    </div>
+    <div id="vocabSaveNote" class="save-note"></div>
+    <div id="vocabList" class="vocab-list"></div>
+  </div>
+
   <div id="pause" class="card hidden">
     <div style="font-size:64px">☕</div>
-    <div class="pause">Super, Tom! Du hast 20 Übungen geschafft.</div>
+    <div class="pause">Super, <span id="pauseName">Tom</span>! Du hast 20 Übungen geschafft.</div>
     <p style="font-size:20px">Zeit für eine kurze Pause. 🧠✨</p>
     <button class="primary" onclick="continueAfterPause()">▶️ Weiterlernen</button>
   </div>
 </div>
 
 <script>
-const words = [
+const defaultWords = [
   {de:"Schule", en:"school", chapter:"Unit 1 – School life", example:"My school is old."},
   {de:"das Leben; die Leben", en:"life; lives", chapter:"Unit 1 – School life", example:"My life is great. Katie's and Nisha's lives are great."},
   {de:"gehen; fahren", en:"go", chapter:"Unit 1 – School life", example:"I go to TTS."},
@@ -155,8 +290,60 @@ const words = [
   {de:"Musik", en:"music", chapter:"Unit 1 – School life", example:"Music."},
 ];
 
+const WORDS_STORAGE_KEY="tom_custom_words_v1";
+let words=defaultWords.map(word=>({...word}));
+try{
+  const savedWords=JSON.parse(localStorage.getItem(WORDS_STORAGE_KEY)||"null");
+  if(Array.isArray(savedWords) && savedWords.length && savedWords.every(saved=>saved && typeof saved.de==="string" && saved.de.trim() && typeof saved.en==="string" && saved.en.trim())){
+    words=savedWords.map((saved,i)=>({
+      ...(defaultWords[i]||{}),
+      de:saved.de.trim(),
+      en:saved.en.trim(),
+      chapter:typeof saved.chapter==="string" && saved.chapter.trim()?saved.chapter.trim():(defaultWords[i]?.chapter||"Unit 1 – School life"),
+      example:typeof saved.example==="string"?saved.example.trim():(defaultWords[i]?.example||"")
+    }));
+  }
+}catch(e){
+  console.warn("Gespeicherte Vokabelkorrekturen konnten nicht geladen werden:",e);
+}
+const UNITS_STORAGE_KEY="tom_units_v1";
+let units=[];
+try{
+  const savedUnits=JSON.parse(localStorage.getItem(UNITS_STORAGE_KEY)||"[]");
+  if(Array.isArray(savedUnits))units=savedUnits.filter(unit=>typeof unit==="string" && unit.trim()).map(unit=>unit.trim());
+}catch(e){
+  units=[];
+}
+words.forEach(word=>{
+  if(word.chapter && !units.includes(word.chapter))units.push(word.chapter);
+});
+if(!units.length)units=["Unit 1 – School life"];
+localStorage.setItem(UNITS_STORAGE_KEY,JSON.stringify(units));
+const PLAYER_NAME_KEY="tom_player_name";
+let playerName=(localStorage.getItem(PLAYER_NAME_KEY)||"Tom").trim()||"Tom";
+
 const REWARD_TARGET = 200;
-const REWARD_TEXT = "30 Minuten zusätzliche Spielzeit 🎮";
+const DEFAULT_REWARD_TEXT="30 Minuten zusätzliche Spielzeit 🎮";
+const REWARD_TEXT_KEY="tom_reward_text";
+let rewardText=(localStorage.getItem(REWARD_TEXT_KEY)||DEFAULT_REWARD_TEXT).trim()||DEFAULT_REWARD_TEXT;
+const DAILY_STORAGE_KEY="tom_daily_practice";
+function localDateKey(){
+  const date=new Date();
+  return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
+}
+let dailyPractice={date:localDateKey(),count:0};
+try{
+  const savedDaily=JSON.parse(localStorage.getItem(DAILY_STORAGE_KEY)||"null");
+  if(savedDaily && savedDaily.date===localDateKey())dailyPractice={date:savedDaily.date,count:Math.max(0,Math.floor(Number(savedDaily.count)||0))};
+}catch(e){
+  dailyPractice={date:localDateKey(),count:0};
+}
+function incrementDailyPractice(){
+  if(dailyPractice.date!==localDateKey())dailyPractice={date:localDateKey(),count:0};
+  dailyPractice.count++;
+}
+const V20_MIGRATION_KEY="tom_v20_last_state_restored";
+const needsV20Migration=localStorage.getItem(V20_MIGRATION_KEY)!=="1";
 const EMAILJS_SERVICE_ID = "service_00ov29z";
 const EMAILJS_TEMPLATE_ID = "template_cpcoofd";
 const EMAILJS_PUBLIC_KEY = "aWi9vtGK8vDXJl7y7";
@@ -191,6 +378,7 @@ let storedStreak=Number(localStorage.getItem("tom_streak"));
 let streak=Number.isFinite(storedStreak) && storedStreak>=0 ? Math.floor(storedStreak) : 0;
 let storedRewardCount=Number(localStorage.getItem("tom_rewards"));
 let rewardCount=Number.isFinite(storedRewardCount) && storedRewardCount>=0 ? Math.floor(storedRewardCount) : 0;
+if(needsV20Migration)rewardCount=Math.max(2,rewardCount);
 let bonusCount=Number(localStorage.getItem("tom_bonus_count")||0);
 if(rewardCount===0) localStorage.setItem("tom_rewards","0");
 let sendingReward=false;
@@ -206,13 +394,47 @@ try {
 } catch(e) {
   learning={};
 }
-words.forEach((_,i)=>{
-  if(!learning[i] || typeof learning[i]!=="object"){
-    learning[i]={level:0,correct:0,wrong:0,due:0};
-  }
-});
+function ensureLearningState(i){
+  if(!learning[i] || typeof learning[i]!=="object")learning[i]={};
+  const l=learning[i];
+  l.level=Math.max(0,Number(l.level)||0);
+  l.correct=Math.max(0,Number(l.correct)||0);
+  l.wrong=Math.max(0,Number(l.wrong)||0);
+  l.due=Math.max(0,Number(l.due)||0);
+  if(typeof l.difficult!=="boolean")l.difficult=l.wrong>=2 && l.level<3;
+  l.mistakesSinceMastery=Math.max(0,Number(l.mistakesSinceMastery)||(l.difficult?2:0));
+  l.recoveryCorrect=Math.max(0,Number(l.recoveryCorrect)||0);
+  return l;
+}
+words.forEach((_,i)=>ensureLearningState(i));
+if(needsV20Migration){
+  words.forEach((_,i)=>{
+    const l=ensureLearningState(i);
+    l.difficult=false;
+    l.mistakesSinceMastery=0;
+    l.recoveryCorrect=0;
+  });
+  localStorage.setItem("tom_rewards",String(rewardCount));
+  localStorage.setItem("tom_learning",JSON.stringify(learning));
+  localStorage.setItem(V20_MIGRATION_KEY,"1");
+}
 
 const $=id=>document.getElementById(id);
+
+function possessivePlayerName(){
+  return /[sxzß]$/i.test(playerName)?playerName+"’":playerName+"s";
+}
+function updatePlayerText(){
+  const possessive=possessivePlayerName();
+  $("appHeading").textContent="📚 "+possessive+" Vokabel-Abenteuer";
+  $("greetingName").textContent=playerName;
+  $("readyName").textContent=playerName;
+  $("learningName").textContent=possessive;
+  $("pauseName").textContent=playerName;
+  document.title=possessive+" Vokabel-Abenteuer";
+  const mobileTitle=document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if(mobileTitle)mobileTitle.setAttribute("content",possessive+" Vokabel-Abenteuer");
+}
 
 function saveProgress(){
   localStorage.setItem("tom_points",points);
@@ -220,25 +442,117 @@ function saveProgress(){
   localStorage.setItem("tom_rewards",rewardCount);
   localStorage.setItem("tom_bonus_count",bonusCount);
   localStorage.setItem("tom_learning",JSON.stringify(learning));
+  localStorage.setItem(DAILY_STORAGE_KEY,JSON.stringify(dailyPractice));
+}
+function exportGameState(){
+  saveProgress();
+  localStorage.setItem(WORDS_STORAGE_KEY,JSON.stringify(words));
+  const backup={
+    format:"toms-vokabel-abenteuer-backup",
+    formatVersion:1,
+    exportedAt:new Date().toISOString(),
+    state:{points,streak,rewardCount,bonusCount,learning,words,units,playerName,rewardText,dailyPractice}
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  const date=new Date().toISOString().slice(0,10);
+  link.href=url;
+  link.download=playerName+"-Vokabel-Abenteuer-Spielstand-"+date+".json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  $("backupStatus").textContent="✅ Spielstand wurde als Datei gespeichert.";
+}
+function chooseGameStateFile(){
+  $("gameStateFile").value="";
+  $("gameStateFile").click();
+}
+function validStoredWord(word){
+  return word && typeof word==="object" && typeof word.de==="string" && word.de.trim() && typeof word.en==="string" && word.en.trim();
+}
+function importGameState(event){
+  const file=event.target.files && event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const backup=JSON.parse(String(reader.result||""));
+      if(backup.format!=="toms-vokabel-abenteuer-backup" || !backup.state || typeof backup.state!=="object"){
+        throw new Error("Diese Datei ist kein gültiger Spielstand.");
+      }
+      const state=backup.state;
+      if(!Array.isArray(state.words) || !state.words.length || !state.words.every(validStoredWord)){
+        throw new Error("Die Vokabeldaten in der Sicherung sind ungültig.");
+      }
+      if(!confirm("Gespeicherten Spielstand laden und den aktuellen Stand ersetzen?"))return;
+      points=Math.max(0,Math.min(REWARD_TARGET,Math.floor(Number(state.points)||0)));
+      streak=Math.max(0,Math.floor(Number(state.streak)||0));
+      rewardCount=Math.max(0,Math.floor(Number(state.rewardCount)||0));
+      bonusCount=Math.max(0,Math.floor(Number(state.bonusCount)||0));
+      words=state.words.map((word,i)=>({
+        de:word.de.trim(),
+        en:word.en.trim(),
+        chapter:typeof word.chapter==="string"?word.chapter:(defaultWords[i]?.chapter||"Unit 1 – School life"),
+        example:typeof word.example==="string"?word.example.trim():""
+      }));
+      if(words.length<defaultWords.length){
+        words.push(...defaultWords.slice(words.length).map(word=>({...word})));
+      }
+      units=Array.isArray(state.units)?state.units.filter(unit=>typeof unit==="string" && unit.trim()).map(unit=>unit.trim()):[];
+      words.forEach(word=>{if(word.chapter && !units.includes(word.chapter))units.push(word.chapter);});
+      if(!units.length)units=["Unit 1 – School life"];
+      if(typeof state.playerName==="string" && state.playerName.trim()){
+        playerName=state.playerName.trim().slice(0,30);
+        localStorage.setItem(PLAYER_NAME_KEY,playerName);
+      }
+      if(typeof state.rewardText==="string" && state.rewardText.trim()){
+        rewardText=state.rewardText.trim().slice(0,120);
+        localStorage.setItem(REWARD_TEXT_KEY,rewardText);
+      }
+      if(state.dailyPractice && typeof state.dailyPractice==="object" && state.dailyPractice.date===localDateKey()){
+        dailyPractice={date:localDateKey(),count:Math.max(0,Math.floor(Number(state.dailyPractice.count)||0))};
+      }else{
+        dailyPractice={date:localDateKey(),count:0};
+      }
+      learning=state.learning && typeof state.learning==="object" && !Array.isArray(state.learning)?state.learning:{};
+      words.forEach((_,i)=>ensureLearningState(i));
+      localStorage.setItem(WORDS_STORAGE_KEY,JSON.stringify(words));
+      localStorage.setItem(UNITS_STORAGE_KEY,JSON.stringify(units));
+      saveProgress();
+      updateStats();
+      updatePlayerText();
+      $("backupStatus").textContent="✅ Spielstand wurde vollständig wiederhergestellt.";
+    }catch(error){
+      console.error("Spielstand konnte nicht geladen werden:",error);
+      $("backupStatus").textContent="❌ "+(error.message||"Spielstand konnte nicht geladen werden.");
+    }
+  };
+  reader.onerror=()=>{$("backupStatus").textContent="❌ Datei konnte nicht gelesen werden.";};
+  reader.readAsText(file);
 }
 function updateStats(){
+  if(dailyPractice.date!==localDateKey())dailyPractice={date:localDateKey(),count:0};
   if(!Number.isFinite(rewardCount) || rewardCount<0) rewardCount=0;
   $("points").textContent=points;
-  $("streak").textContent=streak;
+  $("difficultCount").textContent=getDifficultIndices().length;
   $("rewards").textContent=rewardCount;
   $("bonusNext").textContent=10-(rewardCount%10);
-  $("rewardCountLarge").textContent=rewardCount;
-  $("count").textContent=done;
+  $("dailyCount").textContent=dailyPractice.count;
   updateRewards();
   saveProgress();
 }
 function updateRewards(){
   $("rewardProgress").style.width=(Math.min(REWARD_TARGET,Math.max(0,points))/REWARD_TARGET*100)+"%";
   $("rewardText").textContent=points>=REWARD_TARGET
-    ?"🎉 Spielzeitgutschein bereit!"
-    :"Noch "+(REWARD_TARGET-points)+" Punkte bis zum Spielzeitgutschein";
+    ?"🎉 Gutschein bereit!"
+    :"Noch "+(REWARD_TARGET-points)+" Punkte bis zum Gutschein";
   renderRewards();
   updateLearningStats();
+}
+function getDifficultIndices(){
+  return words.map((_,i)=>i).filter(i=>ensureLearningState(i).difficult);
 }
 function updateLearningStats(){
   const values=Object.values(learning);
@@ -247,11 +561,14 @@ function updateLearningStats(){
   const secure=values.filter(x=>x.level>=3).length;
   $("learningStats").textContent=`🆕 ${newWords} neu   🔄 ${practice} üben   ⭐ ${secure} sicher`;
 }
+function toggleLearningInfo(){
+  $("learningInfo").classList.toggle("hidden");
+}
 function renderRewards(){
   const ready=points>=REWARD_TARGET;
   const untilBonus=10-(rewardCount%10);
   $("rewardBox").innerHTML=`<div class="reward">
-    <div><strong>200 Punkte = ${REWARD_TEXT}</strong></div>
+    <div><strong>200 Punkte = ${escapeHtml(rewardText)}</strong></div>
     <div class="small" style="margin-top:6px">🏆 ${untilBonus===10?"Noch 10 Gutscheine":untilBonus+" Gutscheine"} bis zur nächsten Überraschung 🎁</div>
     ${ready?'<button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button>':""}
   </div>`;
@@ -272,7 +589,9 @@ async function claimReward(){
 
   const params={
     gutscheinnummer:String(nextRewardNumber),
-    gutscheine_gesamt:String(nextRewardNumber)
+    gutscheine_gesamt:String(nextRewardNumber),
+    gutschein_inhalt:rewardText,
+    spielername:playerName
   };
 
   try{
@@ -325,16 +644,18 @@ async function claimReward(){
     if(isMilestone){
       $("feedback").innerHTML=
         '<div class="reward">'+
-        '<h3>🎉 WOW, Tom!</h3>'+
-        '<div>Du hast deinen <b>'+rewardCount+'. Spielzeitgutschein</b> geschafft! 🏆</div>'+
+        '<h3>🎉 WOW, '+escapeHtml(playerName)+'!</h3>'+
+        '<div>Du hast deinen <b>'+rewardCount+'. Gutschein</b> geschafft! 🏆</div>'+
+        '<div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div>'+
         '<div style="margin-top:10px;font-size:22px">🎁 <b>Eine Überraschung wartet auf dich!</b></div>'+
         '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>'+
         '</div>';
     }else{
       $("feedback").innerHTML=
         '<div class="reward">'+
-        '<h3>🎉 Super, Tom!</h3>'+
-        '<div>Dein <b>'+rewardCount+'. Spielzeitgutschein</b> wurde verdient. 🎟️</div>'+
+        '<h3>🎉 Super, '+escapeHtml(playerName)+'!</h3>'+
+        '<div>Dein <b>'+rewardCount+'. Gutschein</b> wurde verdient. 🎟️</div>'+
+        '<div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div>'+
         '<div style="margin-top:8px">Papa wurde automatisch per E-Mail informiert. 📧</div>'+
         '</div>';
     }
@@ -381,33 +702,285 @@ function setTestPoints(){
 }
 
 function showStart(){
-  $("start").classList.remove("hidden"); $("game").classList.add("hidden"); $("pause").classList.add("hidden");
+  ["game","pause","vocabularyManager","learnMenu","unitManager","settings"].forEach(id=>$(id).classList.add("hidden"));
+  $("start").classList.remove("hidden");
   updateRewards();
 }
-let selectedMode="unit1";
+
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));
+}
+function hideMainScreens(){
+  ["start","game","pause","vocabularyManager","learnMenu","unitManager","settings"].forEach(id=>$(id).classList.add("hidden"));
+}
+function showSettings(){
+  hideMainScreens();
+  $("settings").classList.remove("hidden");
+  $("playerNameInput").value=playerName;
+  $("rewardTextInput").value=rewardText;
+  $("settingsStatus").textContent="";
+  $("rewardSettingsStatus").textContent="";
+  $("playerNameInput").focus();
+}
+function savePlayerName(){
+  const name=$("playerNameInput").value.trim().slice(0,30);
+  if(!name){$("settingsStatus").textContent="⚠️ Bitte einen Spielernamen eingeben.";return;}
+  playerName=name;
+  localStorage.setItem(PLAYER_NAME_KEY,playerName);
+  updatePlayerText();
+  $("settingsStatus").textContent="✅ Spielername gespeichert.";
+}
+function saveRewardText(){
+  const text=$("rewardTextInput").value.trim().slice(0,120);
+  if(!text){$("rewardSettingsStatus").textContent="⚠️ Bitte einen Gutscheininhalt eingeben.";return;}
+  rewardText=text;
+  localStorage.setItem(REWARD_TEXT_KEY,rewardText);
+  updateRewards();
+  $("rewardSettingsStatus").textContent="✅ Gutscheininhalt gespeichert.";
+}
+function resetEverything(){
+  const first=confirm("Wirklich alles zurücksetzen? Alle eigenen Units, Vokabeln, Punkte, Gutscheine und Lernstände werden gelöscht.");
+  if(!first)return;
+  const second=confirm("Letzte Bestätigung: Der aktuelle Stand kann danach nur aus einer zuvor gespeicherten Sicherungsdatei wiederhergestellt werden.");
+  if(!second)return;
+  ["tom_points","tom_streak","tom_rewards","tom_bonus_count","tom_learning","tom_app_version",WORDS_STORAGE_KEY,UNITS_STORAGE_KEY,PLAYER_NAME_KEY,REWARD_TEXT_KEY,DAILY_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
+  location.reload();
+}
+function showLearnMenu(){
+  hideMainScreens();
+  $("learnMenu").classList.remove("hidden");
+  renderLearnUnits();
+}
+function renderLearnUnits(){
+  const difficultCount=getDifficultIndices().length;
+  const difficultButton=`<button style="width:100%;background:#fff0d8;color:#7a4300" onclick="startDifficultTraining()">🎯 Schwierige Vokabeln üben <span style="font-size:15px">(${difficultCount})</span></button>`;
+  const unitButtons=units.map((unit,i)=>{
+    const count=words.filter(word=>word.chapter===unit).length;
+    return `<button class="primary" style="width:100%" onclick="selectUnitByNumber(${i})">📘 ${escapeHtml(unit)} <span style="font-size:15px">(${count})</span></button>`;
+  }).join("");
+  $("learnUnitList").innerHTML=difficultButton+unitButtons+
+    '<button style="width:100%" onclick="selectUnit(\'all\')">📚 Alle bisher erfassten Vokabeln</button>';
+}
+function startDifficultTraining(){
+  const count=getDifficultIndices().length;
+  if(!count){
+    alert("🎉 Super – aktuell gibt es keine schwierigen Vokabeln!");
+    return;
+  }
+  selectUnit("difficult");
+}
+function showUnitManager(){
+  hideMainScreens();
+  $("unitManager").classList.remove("hidden");
+  renderManageUnits();
+}
+function renderManageUnits(){
+  $("manageUnitList").innerHTML=units.map((unit,i)=>{
+    const count=words.filter(word=>word.chapter===unit).length;
+    return `<button style="width:100%;text-align:left" onclick="openUnitManager(${i})">📘 ${escapeHtml(unit)} <span class="small">– ${count} Vokabel${count===1?"":"n"}</span></button>`;
+  }).join("");
+}
+function createUnit(){
+  const name=$("newUnitName").value.trim();
+  if(!name){$("unitStatus").textContent="⚠️ Bitte einen Namen für die Unit eingeben.";return;}
+  if(units.some(unit=>normalize(unit)===normalize(name))){$("unitStatus").textContent="⚠️ Diese Unit gibt es bereits.";return;}
+  units.push(name);
+  localStorage.setItem(UNITS_STORAGE_KEY,JSON.stringify(units));
+  $("newUnitName").value="";
+  $("unitStatus").textContent="✅ Unit erstellt: "+name;
+  renderManageUnits();
+  openUnitManager(units.length-1);
+}
+let activeManageUnit=units[0];
+function openUnitManager(unitIndex){
+  activeManageUnit=units[unitIndex]||units[0];
+  hideMainScreens();
+  $("vocabularyManager").classList.remove("hidden");
+  $("vocabularyManagerTitle").textContent="Vokabeln – "+activeManageUnit;
+  $("newVocabChapter").value=activeManageUnit;
+  $("vocabSearch").value="";
+  $("vocabSaveNote").textContent="";
+  resetOcrArea();
+  renderVocabularyList();
+}
+function renderVocabularyList(){
+  const query=normalize($("vocabSearch").value||"");
+  const matches=words.map((word,i)=>({word,i})).filter(({word})=>{
+    if(word.chapter!==activeManageUnit)return false;
+    if(!query)return true;
+    return normalize(word.de).includes(query) || normalize(word.en).includes(query) || normalize(word.example||"").includes(query);
+  });
+  $("vocabList").innerHTML=matches.length?matches.map(({word,i})=>`
+    <div class="vocab-row" id="vocabRow${i}">
+      <div class="vocab-summary">
+        <div><span class="vocab-label">Deutsch</span><div class="vocab-value">${escapeHtml(word.de)}</div></div>
+        <div><span class="vocab-label">Englisch</span><div class="vocab-value">${escapeHtml(word.en)}</div></div>
+        <button onclick="editVocabulary(${i})">✏️ Bearbeiten</button>
+      </div>
+      <div class="vocab-editor hidden" id="vocabEditor${i}">
+        <label>Deutsch<input id="vocabDe${i}" value="${escapeHtml(word.de)}"></label>
+        <label>Englisch<input id="vocabEn${i}" value="${escapeHtml(word.en)}"></label>
+        <label>Beispielsatz<input id="vocabExample${i}" value="${escapeHtml(word.example||"")}"></label>
+        <div class="actions">
+          <button class="primary" onclick="saveVocabulary(${i})">💾 Speichern</button>
+          <button onclick="cancelVocabularyEdit(${i})">Abbrechen</button>
+        </div>
+      </div>
+    </div>`).join(""):'<div class="small" style="font-size:19px;padding:20px">Keine passende Vokabel gefunden.</div>';
+}
+function editVocabulary(i){
+  const editor=$("vocabEditor"+i);
+  if(editor){
+    editor.classList.remove("hidden");
+    $("vocabDe"+i).focus();
+  }
+}
+function cancelVocabularyEdit(i){
+  const editor=$("vocabEditor"+i);
+  if(editor)editor.classList.add("hidden");
+}
+function saveVocabulary(i){
+  const de=$("vocabDe"+i).value.trim();
+  const en=$("vocabEn"+i).value.trim();
+  const example=$("vocabExample"+i).value.trim();
+  if(!de || !en){
+    $("vocabSaveNote").textContent="⚠️ Deutsch und Englisch dürfen nicht leer sein.";
+    return;
+  }
+  words[i]={...words[i],de,en,example};
+  localStorage.setItem(WORDS_STORAGE_KEY,JSON.stringify(words));
+  $("vocabSaveNote").textContent="✅ Vokabel gespeichert: "+de+" – "+en;
+  renderVocabularyList();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function addVocabulary(){
+  const de=$("newVocabDe").value.trim();
+  const en=$("newVocabEn").value.trim();
+  const example=$("newVocabExample").value.trim();
+  if(!de || !en){$("vocabSaveNote").textContent="⚠️ Deutsch und Englisch dürfen nicht leer sein.";return;}
+  words.push({de,en,example,chapter:activeManageUnit});
+  learning[words.length-1]={level:0,correct:0,wrong:0,due:0,difficult:false,mistakesSinceMastery:0,recoveryCorrect:0};
+  localStorage.setItem(WORDS_STORAGE_KEY,JSON.stringify(words));
+  saveProgress();
+  $("newVocabDe").value="";$("newVocabEn").value="";$("newVocabExample").value="";
+  $("vocabSaveNote").textContent="✅ Neue Vokabel gespeichert: "+de+" – "+en;
+  renderVocabularyList();
+}
+
+let selectedPhotoFile=null;
+let ocrPairs=[];
+function resetOcrArea(){
+  selectedPhotoFile=null;ocrPairs=[];
+  $("vocabPhotoFile").value="";
+  $("ocrImagePreview").classList.add("hidden");
+  $("ocrActionArea").classList.add("hidden");
+  $("ocrReview").classList.add("hidden");
+  $("ocrRawText").value="";$("ocrRows").innerHTML="";$("ocrStatus").textContent="";
+}
+function chooseVocabularyPhoto(){
+  $("vocabPhotoFile").value="";
+  $("vocabPhotoFile").click();
+}
+function prepareVocabularyPhoto(event){
+  const file=event.target.files && event.target.files[0];
+  if(!file)return;
+  selectedPhotoFile=file;
+  $("ocrImagePreview").src=URL.createObjectURL(file);
+  $("ocrImagePreview").classList.remove("hidden");
+  $("ocrActionArea").classList.remove("hidden");
+  $("ocrReview").classList.add("hidden");
+  $("ocrStatus").textContent="Foto bereit. Tippe jetzt auf „Wörter erkennen“.";
+}
+async function recognizeVocabularyPhoto(){
+  if(!selectedPhotoFile)return;
+  if(!window.Tesseract || typeof window.Tesseract.createWorker!=="function"){
+    $("ocrStatus").textContent="❌ Die Fotoerkennung konnte nicht geladen werden. Bitte Internetverbindung prüfen.";
+    return;
+  }
+  const button=$("ocrStartButton");
+  button.disabled=true;
+  $("ocrProgressWrap").classList.remove("hidden");
+  $("ocrProgressBar").style.width="2%";
+  $("ocrStatus").textContent="Sprachmodell wird geladen …";
+  let worker;
+  try{
+    worker=await Tesseract.createWorker(["deu","eng"],1,{
+      logger:message=>{
+        if(typeof message.progress==="number")$("ocrProgressBar").style.width=Math.round(message.progress*100)+"%";
+        if(message.status==="recognizing text")$("ocrStatus").textContent="Foto wird gelesen … "+Math.round((message.progress||0)*100)+" %";
+      }
+    });
+    const result=await worker.recognize(selectedPhotoFile);
+    const text=(result.data && result.data.text?result.data.text:"").trim();
+    if(!text)throw new Error("Auf dem Foto wurde kein Text erkannt.");
+    $("ocrRawText").value=text;
+    buildOcrRowsFromText();
+    $("ocrReview").classList.remove("hidden");
+    $("ocrStatus").textContent="✅ Erkennung fertig. Bitte alle Zeilen kontrollieren und korrigieren.";
+    $("ocrProgressBar").style.width="100%";
+  }catch(error){
+    console.error("OCR-Fehler:",error);
+    $("ocrStatus").textContent="❌ "+(error.message||"Das Foto konnte nicht gelesen werden.");
+  }finally{
+    if(worker)await worker.terminate();
+    button.disabled=false;
+  }
+}
+function splitOcrLine(line){
+  const clean=line.replace(/^[•·▪▫*]+\s*/,"").trim();
+  const parts=clean.split(/\t|\s{2,}|\s+[=–—→]\s+|\s+-\s+/).map(part=>part.trim()).filter(Boolean);
+  return parts.length>=2?{de:parts[0],en:parts.slice(1).join("; ")}:{de:clean,en:""};
+}
+function buildOcrRowsFromText(){
+  ocrPairs=$("ocrRawText").value.split(/\r?\n/).map(splitOcrLine).filter(pair=>pair.de.length>1);
+  renderOcrRows();
+}
+function renderOcrRows(){
+  $("ocrRows").innerHTML=ocrPairs.map((pair,i)=>`<div class="ocr-row">
+    <input id="ocrDe${i}" value="${escapeHtml(pair.de)}" placeholder="Deutsch" oninput="ocrPairs[${i}].de=this.value">
+    <input id="ocrEn${i}" value="${escapeHtml(pair.en)}" placeholder="Englisch" oninput="ocrPairs[${i}].en=this.value">
+    <button onclick="removeOcrRow(${i})">🗑️</button>
+  </div>`).join("");
+}
+function addEmptyOcrRow(){ocrPairs.push({de:"",en:""});renderOcrRows();}
+function removeOcrRow(i){ocrPairs.splice(i,1);renderOcrRows();}
+function saveOcrVocabularyRows(){
+  const valid=ocrPairs.map(pair=>({de:pair.de.trim(),en:pair.en.trim()})).filter(pair=>pair.de && pair.en);
+  if(!valid.length){$("ocrStatus").textContent="⚠️ Bitte mindestens eine vollständige Zeile mit Deutsch und Englisch ausfüllen.";return;}
+  valid.forEach(pair=>{
+    words.push({de:pair.de,en:pair.en,example:"",chapter:activeManageUnit});
+    learning[words.length-1]={level:0,correct:0,wrong:0,due:0,difficult:false,mistakesSinceMastery:0,recoveryCorrect:0};
+  });
+  localStorage.setItem(WORDS_STORAGE_KEY,JSON.stringify(words));
+  saveProgress();
+  $("ocrStatus").textContent="✅ "+valid.length+" Vokabeln wurden in „"+activeManageUnit+"“ gespeichert.";
+  ocrPairs=[];$("ocrRows").innerHTML="";$("ocrRawText").value="";
+  renderVocabularyList();
+}
+
+let selectedMode="all";
+function selectUnitByNumber(unitIndex){selectUnit(units[unitIndex]);}
 
 function selectUnit(mode){
   selectedMode=mode;
-  $("start").classList.add("hidden");
-  $("pause").classList.add("hidden");
+  hideMainScreens();
   $("game").classList.remove("hidden");
   done=0;
   nextQuestion();
 }
 function startGame(){
-  selectUnit("unit1");
+  selectUnit(units[0]);
 }
 function chooseQuestionIndex(){
   if(!Array.isArray(words) || words.length===0) return -1;
+  const allowed=words.map((_,i)=>i).filter(i=>selectedMode==="all" || (selectedMode==="difficult"?ensureLearningState(i).difficult:words[i].chapter===selectedMode));
+  if(!allowed.length)return -1;
   const now=Date.now(), due=[];
-  words.forEach((_,i)=>{
-    if(!learning[i] || typeof learning[i]!=="object"){
-      learning[i]={level:0,correct:0,wrong:0,due:0};
-    }
-    const l=learning[i];
+  allowed.forEach(i=>{
+    const l=ensureLearningState(i);
     if((Number(l.due)||0)<=now) due.push(i);
   });
-  const pool=due.length?due:words.map((_,i)=>i);
+  const pool=due.length?due:allowed;
   const weighted=[];
   pool.forEach(i=>{
     const level=Number(learning[i].level)||0;
@@ -422,16 +995,25 @@ function nextQuestion(){
   }
   index=chooseQuestionIndex(); answered=false;
   if(index<0 || !words[index]){
+    if(selectedMode==="difficult"){
+      $("direction").textContent="Fehlertraining abgeschlossen";
+      $("chapter").textContent="";
+      $("question").textContent="🎉 Alles geschafft!";
+      $("answer").value="";$("answer").disabled=true;$("checkBtn").disabled=true;
+      $("secondaryActions").classList.add("hidden");$("nextArea").classList.add("hidden");
+      $("feedback").innerHTML='<div class="feedback" style="color:#176b3b">Aktuell gibt es keine schwierigen Vokabeln mehr.</div><button onclick="showLearnMenu()">← Zurück zur Lern-Auswahl</button>';
+      return;
+    }
     $("question").textContent="Keine Vokabeln gefunden";
     $("feedback").innerHTML='<div class="feedback" style="color:#a52323">Bitte die Vokabelliste prüfen.</div>';
     return;
   }
   const w=words[index];
-  $("question").textContent=direction===0?w.de.split(";")[0].trim():w.en;
+  $("question").textContent=direction===0?w.de:w.en;
   $("direction").textContent=direction===0?"Deutsch → Englisch":"Englisch → Deutsch";
   $("chapter").textContent="📖 "+w.chapter;
   $("answer").value=""; $("answer").disabled=false; $("checkBtn").disabled=false;
-  $("feedback").innerHTML=""; $("nextArea").classList.add("hidden"); $("answer").focus();
+  $("feedback").innerHTML=""; $("nextArea").classList.add("hidden"); $("rewardContinueArea").classList.add("hidden"); $("secondaryActions").classList.remove("hidden"); $("answer").focus();
 }
 function normalize(s){return s.toLowerCase().trim().replace(/[.,!?;:]/g,"").replace(/\s+/g," ");}
 function acceptableAnswers(w){
@@ -441,8 +1023,8 @@ function checkAnswer(){
   if(answered)return;
   const given=normalize($("answer").value); if(!given)return;
   const w=words[index], expected=direction===0?w.en:w.de;
-  const l=learning[index]||{level:0,correct:0,wrong:0,due:0};
-  answered=true; done++;
+  const l=ensureLearningState(index);
+  answered=true; done++; incrementDailyPractice();
   const ok=acceptableAnswers(w).includes(given);
 
   if(ok){
@@ -452,15 +1034,31 @@ function checkAnswer(){
     l.level=Math.min(5,l.level+1);
     const intervals=[0,1,3,10,30,90];
     l.due=Date.now()+intervals[l.level]*60*1000;
-    $("feedback").innerHTML='<div class="feedback" style="color:#176b3b">🎉 Gut gemacht, Tom! Richtig! +5 Punkte</div>';
+    let message='🎉 Gut gemacht, '+escapeHtml(playerName)+'! Richtig! +5 Punkte';
+    if(l.difficult){
+      l.recoveryCorrect++;
+      if(l.recoveryCorrect>=3){
+        l.difficult=false;
+        l.mistakesSinceMastery=0;
+        l.recoveryCorrect=0;
+        points=Math.min(REWARD_TARGET,points+5);
+        message='🎯 Geschafft! Diese schwierige Vokabel sitzt jetzt sicher. +5 Punkte und +5 Lernbonus!';
+      }else{
+        message+=' · Noch '+(3-l.recoveryCorrect)+' richtige Antwort'+(3-l.recoveryCorrect===1?'':'en')+' bis zum Lernbonus.';
+      }
+    }
+    $("feedback").innerHTML='<div class="feedback" style="color:#176b3b">'+message+'</div>';
   }else{
     points=Math.max(0,points-2);
     streak=0;
     l.wrong++;
     l.level=Math.max(0,l.level-1);
     l.due=Date.now()+20*1000;
+    l.mistakesSinceMastery++;
+    l.recoveryCorrect=0;
+    if(l.mistakesSinceMastery>=2)l.difficult=true;
     $("feedback").innerHTML='<div class="feedback" style="color:#a52323">❌ Noch nicht richtig. −2 Punkte</div>' +
-      '<div class="answer">Richtige Antwort: <b>'+expected+'</b></div>' +
+      '<div class="answer">Richtige Antwort: <b>'+escapeHtml(expected)+'</b></div>' +
       '<button onclick="speakWord()" style="margin-top:8px">🔊 Noch einmal anhören</button>';
   }
   learning[index]=l;
@@ -472,7 +1070,7 @@ function checkAnswer(){
     $("nextArea").classList.add("hidden");
     $("secondaryActions").classList.add("hidden");
     $("rewardContinueArea").classList.add("hidden");
-    $("feedback").innerHTML += '<div class="reward"><h3>🎟️ SPIELZEITGUTSCHEIN FREIGESPIELT!</h3><div>Tom, du hast 200 Punkte erreicht! 🎮</div><button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button></div>';
+    $("feedback").innerHTML += '<div class="reward"><h3>🎟️ GUTSCHEIN FREIGESPIELT!</h3><div>'+escapeHtml(playerName)+', du hast 200 Punkte erreicht!</div><div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div><button class="claimRewardBtn" onclick="claimReward()">🎉 Gutschein einlösen</button></div>';
   }else{
     $("nextArea").classList.remove("hidden");
     $("secondaryActions").classList.remove("hidden");
@@ -481,14 +1079,18 @@ function checkAnswer(){
 function skipQuestion(){
   // "Neue Frage" = Antwort nicht gewusst.
   // Deshalb exakt wie eine falsche Antwort: -2 Punkte.
-  const l=learning[index]||{level:0,correct:0,wrong:0,due:0};
+  const l=ensureLearningState(index);
 
   points=Math.max(0,points-2);
   streak=0;
   done++;
+  incrementDailyPractice();
   l.wrong++;
   l.level=Math.max(0,l.level-1);
   l.due=Date.now()+20*1000;
+  l.mistakesSinceMastery++;
+  l.recoveryCorrect=0;
+  if(l.mistakesSinceMastery>=2)l.difficult=true;
   learning[index]=l;
 
   updateStats();
@@ -522,6 +1124,7 @@ document.addEventListener("click",e=>{
   if(btn) claimReward();
 });
 $("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
+updatePlayerText();
 updateStats();
 </script>
 </body>
