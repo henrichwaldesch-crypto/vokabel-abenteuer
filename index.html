@@ -52,7 +52,9 @@
   .vocab-editor label { color:#4a5568; font-size:16px; font-weight:650; }
   .vocab-editor input { margin-top:5px; font-size:18px; padding:13px; }
   .save-note { color:#176b3b; font-weight:700; min-height:24px; }
-  .info-button { width:30px; height:30px; padding:0; margin-left:5px; border-radius:50%; font-size:18px; font-weight:800; line-height:30px; vertical-align:2px; background:#dfe8ff; color:#24457f; }
+  .learning-header { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; margin:0 0 8px; }
+  .learning-header .learning-title { grid-column:2; font-size:25px; font-weight:700; }
+  .info-button { grid-column:3; justify-self:center; width:30px; height:30px; padding:0; border-radius:50%; font-size:18px; font-weight:800; line-height:30px; background:#dfe8ff; color:#24457f; }
   .learning-info { margin-top:14px; padding:15px; border-radius:14px; background:#f4f6fb; color:#4a5568; text-align:left; font-size:16px; line-height:1.5; }
   .learning-info p { margin:6px 0; }
   .add-box { border:2px solid #bfd0ff; background:#f5f8ff; border-radius:20px; padding:18px; margin:18px 0; text-align:left; }
@@ -113,7 +115,10 @@
     </div>
     <div id="rewardBox"></div><div id="mailDiagnostic" class="small" style="display:none;margin-top:12px;padding:12px;background:#f4f6fb;border-radius:12px;text-align:left;word-break:break-word"></div>
     <div class="reward">
-      <h3>🧠 <span id="learningName">Toms</span> Lernstand <button class="info-button" onclick="toggleLearningInfo()" aria-label="Erklärung zum Lernstand" title="Erklärung anzeigen">i</button></h3>
+      <div class="learning-header">
+        <div class="learning-title">🧠 <span id="learningName">Toms</span> Lernstand</div>
+        <button class="info-button" onclick="toggleLearningInfo()" aria-label="Erklärung zum Lernstand" title="Erklärung anzeigen">i</button>
+      </div>
       <div id="learningStats" class="small"></div>
       <div id="learningInfo" class="learning-info hidden">
         <p><b>🆕 Neu:</b> Noch nicht richtig beantwortet oder wieder auf der ersten Lernstufe.</p>
