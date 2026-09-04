@@ -73,6 +73,18 @@
   .ocr-row { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:center; }
   .ocr-row input { font-size:17px; padding:11px; }
   textarea { width:100%; min-height:120px; padding:13px; border:2px solid #dce2ef; border-radius:12px; font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+
+  .install-help { text-align:left; }
+  .install-help > p { text-align:center; }
+  .install-help details { border:2px solid #dfe6f5; border-radius:16px; background:white; margin:12px 0; overflow:hidden; }
+  .install-help summary { cursor:pointer; list-style:none; padding:16px 18px; font-size:19px; font-weight:750; color:#24457f; }
+  .install-help summary::-webkit-details-marker { display:none; }
+  .install-help summary::after { content:"＋"; float:right; font-size:22px; line-height:1; }
+  .install-help details[open] summary::after { content:"−"; }
+  .install-help .install-steps { padding:0 18px 16px; color:#4a5568; font-size:17px; line-height:1.55; }
+  .install-help .install-steps ol { margin:8px 0 10px 22px; padding:0; }
+  .install-help .install-steps li { margin:7px 0; }
+  .install-tip { margin-top:12px; padding:12px 14px; border-radius:12px; background:#eef2ff; color:#344765; }
   @media (max-width:600px) {
     h1{font-size:32px}.subtitle{font-size:18px}.question{font-size:34px}.card{padding:20px}
     .vocab-summary{grid-template-columns:1fr}.vocab-summary button{width:100%}
@@ -119,21 +131,7 @@
       </div>
     </div>
     <div id="rewardBox"></div><div id="mailDiagnostic" class="small" style="display:none;margin-top:12px;padding:12px;background:#f4f6fb;border-radius:12px;text-align:left;word-break:break-word"></div>
-    <div class="reward">
-      <div class="learning-header">
-        <div class="learning-title">🧠 <span id="learningName">Toms</span> Lernstand</div>
-        <button class="info-button" onclick="toggleLearningInfo()" aria-label="Erklärung zum Lernstand" title="Erklärung anzeigen">i</button>
-      </div>
-      <div id="learningStats" class="small"></div>
-      <div id="learningInfo" class="learning-info hidden">
-        <p><b>🆕 Neu:</b> Noch nicht richtig beantwortet oder wieder auf der ersten Lernstufe.</p>
-        <p><b>🔄 Üben:</b> Bereits richtig beantwortet, aber noch nicht sicher.</p>
-        <p><b>⭐ Sicher:</b> Mindestens Lernstufe 3 erreicht.</p>
-        <p>Eine richtige Antwort erhöht die Lernstufe, eine falsche Antwort oder „Neue Frage“ senkt sie.</p>
-        <p><b>🎯 Schwierig</b> wird getrennt gezählt: Nach zwei Fehlern kommt eine Vokabel ins Fehlertraining. Nach drei richtigen Antworten hintereinander verlässt sie es wieder und bringt den Lernbonus.</p>
-      </div>
-    </div>
-    <div class="reward">
+        <div class="reward">
       <h3>💾 Spielstand sichern</h3>
       <div class="small" style="font-size:17px;margin-bottom:12px">Sichert Punkte, Gutscheine, Lernstand und korrigierte Vokabeln in einer Datei.</div>
       <div class="actions">
@@ -174,6 +172,52 @@
       <div class="actions"><button class="primary" onclick="saveParentPin()">💾 Eltern-PIN speichern</button></div>
       <div id="pinSettingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
     </div>
+    <div class="add-box">
+      <h3>↔️ Abfragerichtung</h3>
+      <p class="small" style="text-align:center;font-size:17px">Lege fest, ob Tom während des Trainings die Abfragerichtung selbst wechseln darf.</p>
+      <label style="display:flex;align-items:center;justify-content:center;gap:12px;font-size:19px;font-weight:650">
+        <input id="allowDirectionSwitchInput" type="checkbox" style="width:auto;transform:scale(1.3)">
+        Richtungswechsel im Training erlauben
+      </label>
+      <div class="actions"><button class="primary" onclick="saveTrainingSettings()">💾 Einstellung speichern</button></div>
+      <div id="trainingSettingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
+    </div>
+
+    <div class="add-box install-help">
+      <h3 style="text-align:center">📱 App auf dem Startbildschirm installieren</h3>
+      <p class="small" style="font-size:17px">So bekommt die Vokabel-App ein eigenes Icon auf dem iPad, iPhone oder Android-Gerät. Die genaue Bezeichnung einzelner Menüpunkte kann je nach Systemversion leicht abweichen.</p>
+
+      <details>
+        <summary>🍎 iPhone / iPad</summary>
+        <div class="install-steps">
+          <ol>
+            <li>Den <b>veröffentlichten Link der Vokabel-App in Safari</b> öffnen.</li>
+            <li>Auf das <b>Teilen-Symbol</b> tippen – das Quadrat mit dem Pfeil nach oben.</li>
+            <li>In der Liste <b>„Zum Home-Bildschirm“</b> auswählen. Falls der Punkt nicht sofort sichtbar ist, in der Liste weiter nach unten scrollen.</li>
+            <li>Den angezeigten Namen prüfen und oben rechts auf <b>„Hinzufügen“</b> tippen.</li>
+            <li>Die App erscheint anschließend wie eine normale App als Icon auf dem Home-Bildschirm.</li>
+          </ol>
+          <div class="install-tip"><b>💡 Tipp:</b> Am zuverlässigsten funktioniert die Einrichtung über Safari. Später kann die App direkt über das neue Icon gestartet werden.</div>
+        </div>
+      </details>
+
+      <details>
+        <summary>🤖 Android</summary>
+        <div class="install-steps">
+          <ol>
+            <li>Den <b>veröffentlichten Link der Vokabel-App in Chrome</b> öffnen.</li>
+            <li>Oben rechts auf das <b>Menü mit den drei Punkten</b> tippen.</li>
+            <li>Je nach Android-/Chrome-Version <b>„Zum Startbildschirm hinzufügen“</b> oder <b>„App installieren“</b> auswählen.</li>
+            <li>Name und Symbol prüfen und mit <b>„Hinzufügen“</b> bzw. <b>„Installieren“</b> bestätigen.</li>
+            <li>Danach kann die Vokabel-App direkt über das Icon auf dem Startbildschirm geöffnet werden.</li>
+          </ol>
+          <div class="install-tip"><b>💡 Tipp:</b> Falls der Menüpunkt nicht erscheint, die Seite einmal vollständig laden und prüfen, ob sie über einen normalen Weblink geöffnet wurde.</div>
+        </div>
+      </details>
+
+      <div class="install-tip"><b>Wichtig:</b> Für die Einrichtung immer den veröffentlichten Weblink der App verwenden – nicht eine lokal gespeicherte HTML-Datei.</div>
+    </div>
+
     <div class="add-box" style="border-color:#f3b7b3;background:#fff7f6">
       <h3>⚠️ Alles zurücksetzen</h3>
       <p class="small" style="text-align:center;font-size:17px">Löscht alle selbst erstellten Units und Vokabeln sowie Punkte, Gutscheine und sämtliche Lernstände. Danach beginnt die App wieder mit Tom und Unit 1.</p>
@@ -202,6 +246,20 @@
 
   <div id="learnMenu" class="card hidden">
     <div style="font-size:56px">📚</div>
+    <div class="reward" style="margin-top:12px;margin-bottom:22px">
+      <div class="learning-header">
+        <div class="learning-title">🧠 <span id="learningName">Toms</span> Lernstand</div>
+        <button class="info-button" onclick="toggleLearningInfo()" aria-label="Erklärung zum Lernstand" title="Erklärung anzeigen">i</button>
+      </div>
+      <div id="learningStats" class="small"></div>
+      <div id="learningInfo" class="learning-info hidden">
+        <p><b>🆕 Neu:</b> Noch nicht richtig beantwortet oder wieder auf der ersten Lernstufe.</p>
+        <p><b>🔄 Üben:</b> Bereits richtig beantwortet, aber noch nicht sicher.</p>
+        <p><b>⭐ Sicher:</b> Mindestens Lernstufe 3 erreicht.</p>
+        <p>Eine richtige Antwort erhöht die Lernstufe, eine falsche Antwort oder „Neue Frage“ senkt sie.</p>
+        <p><b>🎯 Schwierig</b> wird getrennt gezählt: Nach zwei Fehlern kommt eine Vokabel ins Fehlertraining. Nach drei richtigen Antworten hintereinander verlässt sie es wieder und bringt den Lernbonus.</p>
+      </div>
+    </div>
     <h2>Was möchtest du lernen?</h2>
     <div id="learnUnitList" class="vocab-list"></div>
     <div class="actions"><button onclick="showStart()">← Zurück zur Startseite</button></div>
@@ -230,7 +288,7 @@
     <input id="answer" autocomplete="off" autocapitalize="none" placeholder="Deine Antwort hier eingeben …">
     <div class="actions">
       <button class="primary" id="checkBtn" onclick="checkAnswer()">✅ Antwort prüfen</button>
-      <button onclick="speakWord()">🔊 Anhören</button>
+      <button id="listenBtn" onclick="speakWord()" disabled>🔊 Anhören</button>
     </div>
     <div id="feedback"></div>
     <div id="rewardContinueArea" class="hidden" style="margin-top:16px"></div>
@@ -240,7 +298,7 @@
     </div>
     <div class="actions" id="secondaryActions" style="margin-top:20px">
       <button onclick="skipQuestion()">🔄 Neue Frage</button>
-      <button onclick="switchDirection()">↔️ Richtung wechseln</button>
+      <button id="switchDirectionBtn" onclick="switchDirection()">↔️ Richtung wechseln</button>
     </div>
   </div>
 
@@ -363,6 +421,8 @@ const REWARD_TARGET = 200;
 const DEFAULT_REWARD_TEXT="30 Minuten zusätzliche Spielzeit 🎮";
 const REWARD_TEXT_KEY="tom_reward_text";
 let rewardText=(localStorage.getItem(REWARD_TEXT_KEY)||DEFAULT_REWARD_TEXT).trim()||DEFAULT_REWARD_TEXT;
+const ALLOW_DIRECTION_SWITCH_KEY="tom_allow_direction_switch_v1";
+let allowDirectionSwitch=localStorage.getItem(ALLOW_DIRECTION_SWITCH_KEY)!=="0";
 const DAILY_STORAGE_KEY="tom_daily_practice";
 function localDateKey(){
   const date=new Date();
@@ -482,7 +542,7 @@ function exportGameState(){
     format:"toms-vokabel-abenteuer-backup",
     formatVersion:1,
     exportedAt:new Date().toISOString(),
-    state:{points,streak,rewardCount,pendingRewards,bonusCount,learning,words,units,playerName,rewardText,dailyPractice}
+    state:{points,streak,rewardCount,pendingRewards,bonusCount,learning,words,units,playerName,rewardText,allowDirectionSwitch,dailyPractice}
   };
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob);
@@ -542,6 +602,10 @@ function importGameState(event){
       if(typeof state.rewardText==="string" && state.rewardText.trim()){
         rewardText=state.rewardText.trim().slice(0,120);
         localStorage.setItem(REWARD_TEXT_KEY,rewardText);
+      }
+      if(typeof state.allowDirectionSwitch==="boolean"){
+        allowDirectionSwitch=state.allowDirectionSwitch;
+        localStorage.setItem(ALLOW_DIRECTION_SWITCH_KEY,allowDirectionSwitch?"1":"0");
       }
       if(state.dailyPractice && typeof state.dailyPractice==="object" && state.dailyPractice.date===localDateKey()){
         dailyPractice={date:localDateKey(),count:Math.max(0,Math.floor(Number(state.dailyPractice.count)||0))};
@@ -649,8 +713,10 @@ function showSettings(){
   $("rewardTextInput").value="";
   $("rewardTextInput").value=rewardText;
   $("parentPinInput").value="";
+  $("allowDirectionSwitchInput").checked=allowDirectionSwitch;
   $("settingsStatus").textContent="";
   $("rewardSettingsStatus").textContent="";
+  $("trainingSettingsStatus").textContent="";
   $("pinSettingsStatus").textContent=parentPin?"✅ Ein Eltern-PIN ist eingerichtet.":"Noch kein Eltern-PIN eingerichtet.";
   $("playerNameInput").focus();
 }
@@ -669,6 +735,17 @@ function saveRewardText(){
   localStorage.setItem(REWARD_TEXT_KEY,rewardText);
   updateRewards();
   $("rewardSettingsStatus").textContent="✅ Gutscheininhalt gespeichert.";
+}
+function saveTrainingSettings(){
+  allowDirectionSwitch=!!$("allowDirectionSwitchInput").checked;
+  localStorage.setItem(ALLOW_DIRECTION_SWITCH_KEY,allowDirectionSwitch?"1":"0");
+  updateDirectionSwitchVisibility();
+  $("trainingSettingsStatus").textContent="✅ Einstellung gespeichert.";
+}
+function updateDirectionSwitchVisibility(){
+  const btn=$("switchDirectionBtn");
+  if(!btn)return;
+  btn.classList.toggle("hidden",!allowDirectionSwitch);
 }
 function saveParentPin(){
   const pin=$("parentPinInput").value.trim();
@@ -750,7 +827,7 @@ function resetEverything(){
   if(!first)return;
   const second=confirm("Letzte Bestätigung: Der aktuelle Stand kann danach nur aus einer zuvor gespeicherten Sicherungsdatei wiederhergestellt werden.");
   if(!second)return;
-  ["tom_points","tom_streak","tom_rewards",PENDING_REWARDS_KEY,PENDING_REWARDS_MIGRATION_KEY,PARENT_PIN_KEY,"tom_bonus_count","tom_learning","tom_app_version",WORDS_STORAGE_KEY,UNITS_STORAGE_KEY,PLAYER_NAME_KEY,REWARD_TEXT_KEY,DAILY_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
+  ["tom_points","tom_streak","tom_rewards",PENDING_REWARDS_KEY,PENDING_REWARDS_MIGRATION_KEY,PARENT_PIN_KEY,"tom_bonus_count","tom_learning","tom_app_version",WORDS_STORAGE_KEY,UNITS_STORAGE_KEY,PLAYER_NAME_KEY,REWARD_TEXT_KEY,ALLOW_DIRECTION_SWITCH_KEY,DAILY_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
   location.reload();
 }
 function showLearnMenu(){
@@ -1020,7 +1097,10 @@ function nextQuestion(){
   $("direction").textContent=direction===0?"Deutsch → Englisch":"Englisch → Deutsch";
   $("chapter").textContent="📖 "+w.chapter;
   $("answer").value=""; $("answer").disabled=false; $("checkBtn").disabled=false;
-  $("feedback").innerHTML=""; $("nextArea").classList.add("hidden"); $("rewardContinueArea").classList.add("hidden"); $("secondaryActions").classList.remove("hidden"); $("answer").focus();
+  $("listenBtn").disabled=true;
+  $("feedback").innerHTML=""; $("nextArea").classList.add("hidden"); $("rewardContinueArea").classList.add("hidden"); $("secondaryActions").classList.remove("hidden");
+  updateDirectionSwitchVisibility();
+  $("answer").focus();
 }
 function normalize(s){return s.toLowerCase().trim().replace(/[.,!?;:]/g,"").replace(/\s+/g," ");}
 function acceptableAnswers(w){
@@ -1068,10 +1148,13 @@ function checkAnswer(){
       '<div class="answer">Richtige Antwort: <b>'+escapeHtml(expected)+'</b></div>' +
       '<button onclick="speakWord()" style="margin-top:8px">🔊 Noch einmal anhören</button>';
   }
+  if(w.example && w.example.trim()){
+    $("feedback").innerHTML += '<div class="answer" style="margin-top:14px"><b>💬 Beispielsatz:</b> '+escapeHtml(w.example)+'</div>';
+  }
   learning[index]=l;
   const collected=collectRewardIfReady();
   updateStats();
-  $("answer").disabled=true; $("checkBtn").disabled=true;
+  $("answer").disabled=true; $("checkBtn").disabled=true; $("listenBtn").disabled=false;
 
   if(collected){
     $("feedback").innerHTML += '<div class="reward"><h3>🎟️ GUTSCHEIN GESCHAFFT!</h3><div>'+escapeHtml(playerName)+', dein <b>'+collected.number+'. Gutschein</b> wurde automatisch gesammelt.</div><div style="margin-top:8px"><b>'+escapeHtml(rewardText)+'</b></div><div style="margin-top:8px">Du kannst direkt weiterlernen. Der Gutschein kann später mit dem Eltern-PIN eingelöst werden. 🔐</div>'+(collected.isMilestone?'<div style="margin-top:12px;font-size:22px">🎁 <b>Und das war Gutschein Nr. '+collected.number+' – eine Überraschung wartet auf dich!</b></div>':'')+'</div>';
@@ -1115,6 +1198,7 @@ function continueAfterReward(){
 function switchDirection(){direction=1-direction;nextQuestion();}
 function continueAfterPause(){done=0;$("pause").classList.add("hidden");$("game").classList.remove("hidden");nextQuestion();}
 function speakWord(){
+  if(!answered)return;
   const text=words[index].en;
   if("speechSynthesis" in window){
     speechSynthesis.cancel();
@@ -1124,6 +1208,7 @@ function speakWord(){
 }
 $("answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer();});
 updatePlayerText();
+updateDirectionSwitchVisibility();
 updateStats();
 </script>
 </body>
