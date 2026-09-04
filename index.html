@@ -133,7 +133,7 @@
     <div id="rewardBox"></div><div id="mailDiagnostic" class="small" style="display:none;margin-top:12px;padding:12px;background:#f4f6fb;border-radius:12px;text-align:left;word-break:break-word"></div>
         <div class="reward">
       <h3>💾 Spielstand sichern</h3>
-      <div class="small" style="font-size:17px;margin-bottom:12px">Sichert Punkte, Gutscheine, Lernstand und korrigierte Vokabeln in einer Datei.</div>
+      <div class="small" style="font-size:17px;margin-bottom:12px">Sichert Punkte, Gutscheine, Lernstand und korrigierte Vokabeln in einer Datei. Auf iPhone/iPad kannst du beim Sichern direkt einen Ordner in iCloud Drive auswählen.</div>
       <div class="actions">
         <button class="primary" onclick="exportGameState()">💾 Spielstand sichern</button>
         <button onclick="chooseGameStateFile()">📂 Spielstand laden</button>
@@ -181,6 +181,38 @@
       </label>
       <div class="actions"><button class="primary" onclick="saveTrainingSettings()">💾 Einstellung speichern</button></div>
       <div id="trainingSettingsStatus" class="save-note" style="text-align:center;margin-top:10px"></div>
+    </div>
+
+    <div class="add-box install-help">
+      <h3 style="text-align:center">☁️ Spielstand über iCloud zwischen Geräten nutzen</h3>
+      <p class="small" style="font-size:17px">So kannst du denselben Spielstand z. B. auf iPad und iPhone verwenden – ganz ohne zusätzliches Konto.</p>
+
+      <details>
+        <summary>💾 Spielstand in iCloud sichern</summary>
+        <div class="install-steps">
+          <ol>
+            <li>Auf <b>„Spielstand sichern“</b> tippen.</li>
+            <li>Auf iPhone/iPad öffnet sich – sofern vom Gerät unterstützt – das Teilen-Menü.</li>
+            <li><b>„In Dateien sichern“</b> auswählen.</li>
+            <li>Unter <b>iCloud Drive</b> einen Ordner wählen, z. B. <b>„Toms Vokabel-Abenteuer“</b>.</li>
+            <li>Die Datei wird immer unter dem Namen <b>„Toms-Vokabel-Abenteuer-Spielstand.json“</b> angeboten. Beim erneuten Sichern kann die vorhandene Datei ersetzt werden.</li>
+          </ol>
+          <div class="install-tip"><b>💡 Empfehlung:</b> Auf allen Apple-Geräten denselben Ordner in iCloud Drive verwenden. Dann ist der aktuelle Spielstand leicht wiederzufinden.</div>
+        </div>
+      </details>
+
+      <details>
+        <summary>📂 Spielstand auf einem anderen Gerät laden</summary>
+        <div class="install-steps">
+          <ol>
+            <li>Auf dem anderen Gerät die Vokabel-App öffnen.</li>
+            <li>Auf <b>„Spielstand laden“</b> tippen.</li>
+            <li>Im Dateidialog <b>iCloud Drive</b> und den zuvor gewählten Ordner öffnen.</li>
+            <li><b>„Toms-Vokabel-Abenteuer-Spielstand.json“</b> auswählen.</li>
+          </ol>
+          <div class="install-tip"><b>Wichtig:</b> Vor dem Wechsel auf das andere Gerät immer zuerst auf dem zuletzt benutzten Gerät sichern. Danach auf dem neuen Gerät laden. Die Web-App darf den iCloud-Ordner aus Sicherheitsgründen nicht selbst fest vorgeben.</div>
+        </div>
+      </details>
     </div>
 
     <div class="add-box install-help">
@@ -535,7 +567,7 @@ function saveProgress(){
   localStorage.setItem("tom_learning",JSON.stringify(learning));
   localStorage.setItem(DAILY_STORAGE_KEY,JSON.stringify(dailyPractice));
 }
-function exportGameState(){
+async function exportGameState(){
   saveProgress();
   localStorage.setItem(WORDS_STORAGE_KEY,JSON.stringify(words));
   const backup={
@@ -544,17 +576,37 @@ function exportGameState(){
     exportedAt:new Date().toISOString(),
     state:{points,streak,rewardCount,pendingRewards,bonusCount,learning,words,units,playerName,rewardText,allowDirectionSwitch,dailyPractice}
   };
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const fileName="Toms-Vokabel-Abenteuer-Spielstand.json";
+  const json=JSON.stringify(backup,null,2);
+  const file=new File([json],fileName,{type:"application/json"});
+
+  // Auf iPhone/iPad kann das Teilen-Menü „In Dateien sichern“ anbieten.
+  // Damit lässt sich der gewünschte iCloud-Drive-Ordner direkt auswählen.
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file],title:"Toms Vokabel-Abenteuer – Spielstand"});
+      $("backupStatus").textContent="✅ Spielstand bereitgestellt. Wenn du „In Dateien sichern“ gewählt hast, liegt er im ausgewählten iCloud-Ordner.";
+      return;
+    }catch(error){
+      if(error && error.name==="AbortError"){
+        $("backupStatus").textContent="ℹ️ Speichern wurde abgebrochen.";
+        return;
+      }
+      console.warn("Teilen-Menü konnte nicht verwendet werden, Download wird genutzt:",error);
+    }
+  }
+
+  // Fallback für Browser/Geräte ohne Datei-Teilen: normaler Download.
+  const blob=new Blob([json],{type:"application/json"});
   const url=URL.createObjectURL(blob);
   const link=document.createElement("a");
-  const date=new Date().toISOString().slice(0,10);
   link.href=url;
-  link.download=playerName+"-Vokabel-Abenteuer-Spielstand-"+date+".json";
+  link.download=fileName;
   document.body.appendChild(link);
   link.click();
   link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-  $("backupStatus").textContent="✅ Spielstand wurde als Datei gespeichert.";
+  $("backupStatus").textContent="✅ Spielstand wurde gespeichert. Falls kein Speicherort abgefragt wurde, findest du ihn im eingestellten Download-Ordner des Browsers.";
 }
 function chooseGameStateFile(){
   $("gameStateFile").value="";
